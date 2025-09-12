@@ -26,7 +26,7 @@ import Dispatch
 /// Global manager to perform operations on all your queues/
 /// You will have to keep this instance. We highly recommend you to store this instance in a Singleton
 /// Creating and instance of this class will automatically un-serialize your jobs and schedule them
-final class SwiftQueueManager {
+final class SwiftQueueManager: @unchecked Sendable {
 
     internal let params: SqManagerParams
 
@@ -203,7 +203,7 @@ internal struct SqManagerParams {
 }
 
 /// Entry point to create a `SwiftQueueManager`
-final class SwiftQueueManagerBuilder {
+final class SwiftQueueManagerBuilder: @unchecked Sendable {
 
     private var params: SqManagerParams
     private var isSuspended: Bool = false

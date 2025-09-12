@@ -3,7 +3,7 @@ import Foundation
 
 public protocol AnalyticEvent {
     var eventName: String { get }
-    var attributes: [String: Any]? { get }
+    var attributes: [String: any Sendable]? { get }
 }
 
 public protocol UserAttribute {
@@ -23,6 +23,10 @@ public struct Configuration: Codable, Sendable {
     public var optOut: Bool
     public var useBatch: Bool
     internal let serverUrl: URL
+    internal var logger: any RevenuePilotLogger {
+        RevenuePilotConsoleLogger()
+    }
+    
     public var flushEventsOnClose: Bool
 
     public init(
@@ -41,27 +45,32 @@ public struct Configuration: Codable, Sendable {
     }
 }
 
-@MainActor
-public final class RevenuePilot {
+public final class RevenuePilot: @unchecked Sendable {
     static let sdkVersion: String = "1.0.0"
     static let apiVersion: String = "1"
     
     public let configuration: Configuration
     private let queue: MessageQueue
     private let consumer: CDPMessageConsumer
+    private let queueRunLoopTask: Task<Void, Never>
     
     public init(configuration: Configuration) {
-        let consumer: CDPMessageConsumer = .init(configuration: configuration)
+        let consumer = CDPMessageConsumer(configuration: configuration)
         self.configuration = configuration
         self.consumer = consumer
-        self.queue = MessageQueue(consumer: consumer)
+        let queue = MessageQueue(consumer: consumer)
+        self.queue = queue
+        
+        self.queueRunLoopTask = Task(priority: .background, operation: { [weak queue] in
+            await queue?.startRunloop()
+        })
     }
 
     public func track<E: AnalyticEvent>(event: E) {
         self.track(event: event.eventName, attributes: event.attributes)
     }
 
-    public func track(event: String, attributes: [String: Any]? = nil) {
+    public func track(event: String, attributes: [String: any Sendable]? = nil) {
         Task(priority: .background) {
             await queue.emit(.track(event: event,
                                     userId: currentUserId,
@@ -74,6 +83,10 @@ public final class RevenuePilot {
 
     public func identify(userId: String, traits: [String: Any]? = nil) {
         currentUserId = userId
+    }
+    
+    deinit {
+        queueRunLoopTask.cancel()
     }
 }
 
