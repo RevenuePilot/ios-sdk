@@ -37,7 +37,7 @@ extension RevenuePilot {
             configuration.logger.log(.info, message: "CDPMessageConsumer: Scheduling job with type: \(SendBatchingMessageJob.type)", error: nil)
             
             JobBuilder(type: SendBatchingMessageJob.type)
-                .internet(atLeast: .any)
+                .internet(atLeast: .cellular)
                 .persist()
                 .service(quality: .background)
                 .with(params: paramsJSON)
