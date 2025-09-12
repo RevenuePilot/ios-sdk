@@ -126,7 +126,7 @@ struct Message: Codable {
         var app: App
         var device: Device
         var os: OS
-        var locale: Locale
+        var locale: String
         var timezone: String
         var library: Library
         var extra: [String: RevFlowPrimitive]?

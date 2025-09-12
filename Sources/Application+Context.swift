@@ -23,7 +23,7 @@ extension RevenuePilot {
             app: createCurrentApp(),
             device: createCurrentDevice(),
             os: createCurrentOS(),
-            locale: createCurrentLocale(),
+            locale: createCurrentLocale() ?? "Unknown",
             timezone: TimeZone.current.identifier,
             library: createCurrentLibrary(),
             extra: nil
@@ -144,15 +144,13 @@ extension RevenuePilot {
         )
     }
 
-    private static func createCurrentLocale() -> Message.Locale {
+    private static func createCurrentLocale() -> String? {
         let languageCode: String?
         if #available(iOS 16, macOS 13, watchOS 9, tvOS 16, *) {
             languageCode = Foundation.Locale.current.language.languageCode?.identifier
         } else {
             languageCode = Foundation.Locale.current.languageCode
         }
-        return Message.Locale(
-            language: languageCode
-        )
+        return languageCode
     }
 }

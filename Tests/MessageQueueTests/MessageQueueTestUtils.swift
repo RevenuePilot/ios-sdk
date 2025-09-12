@@ -126,9 +126,7 @@ extension Message {
                 name: "iOS",
                 version: "17.0"
             ),
-            locale: Message.Locale(
-                language: "en",
-            ),
+            locale: "en",
             timezone: "America/New_York",
             library: Message.Library(
                 name: "RevenuePilot",

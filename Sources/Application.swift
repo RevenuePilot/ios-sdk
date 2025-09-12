@@ -23,15 +23,15 @@ public struct Configuration: Codable, Sendable {
     public var optOut: Bool
     public var useBatch: Bool
     let serverUrl: URL
+    public var flushEventsOnClose: Bool
+
     var logger: any RevenuePilotLogger {
         RevenuePilotConsoleLogger()
     }
 
-    public var flushEventsOnClose: Bool
-
     public init(
         apiKey: String,
-        flushInterval: TimeInterval = 30,
+        flushInterval: TimeInterval = 5,
         optOut: Bool = false,
         useBatch: Bool = true,
         flushEventsOnClose: Bool = true
@@ -45,7 +45,7 @@ public struct Configuration: Codable, Sendable {
     }
 }
 
-public final class RevenuePilot: @unchecked Sendable {
+public final class RevenuePilot: Sendable {
     static let sdkVersion: String = "1.0.0"
     static let apiVersion: String = "1"
 
@@ -58,7 +58,11 @@ public final class RevenuePilot: @unchecked Sendable {
         let consumer = CDPMessageConsumer(configuration: configuration)
         self.configuration = configuration
         self.consumer = consumer
-        let queue = MessageQueue(consumer: consumer)
+        
+        let queue = MessageQueue(consumer: consumer,
+                                 options: .init(batchingWindow: .init(timeWindow: configuration.flushInterval,
+                                                                      maxCount: 50)))
+        
         self.queue = queue
 
         queueRunLoopTask = Task(
