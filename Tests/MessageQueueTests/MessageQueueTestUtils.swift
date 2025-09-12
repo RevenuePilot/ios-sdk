@@ -65,21 +65,21 @@ class MockMessageConsumer: MessageConsumer, @unchecked Sendable {
         consumeCallbacks.append(callback)
     }
 
-    func assertConsumedMessagesCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
+    func assertConsumedMessagesCount(expected: Int, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(totalMessagesConsumed, expected, "Expected \(expected) total messages, got \(totalMessagesConsumed)", file: file, line: line)
     }
 
-    func assertBatchCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
+    func assertBatchCount(expected: Int, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(consumeCount, expected, "Expected \(expected) batches, got \(consumeCount)", file: file, line: line)
     }
 
-    func assertMessageOrder(expectedIds: [String], file: StaticString = #file, line: UInt = #line) {
+    func assertMessageOrder(expectedIds: [String], file: StaticString = #filePath, line: UInt = #line) {
         let allMessages = consumedMessages.flatMap { $0 }
         let actualIds = allMessages.map { $0.id }
         XCTAssertEqual(actualIds, expectedIds, "Message order mismatch", file: file, line: line)
     }
 
-    func assertBatchSizes(expected: [Int], file: StaticString = #file, line: UInt = #line) {
+    func assertBatchSizes(expected: [Int], file: StaticString = #filePath, line: UInt = #line) {
         let actualBatchSizes = consumedMessages.map { $0.count }
         XCTAssertEqual(actualBatchSizes, expected, "Batch size mismatch", file: file, line: line)
     }

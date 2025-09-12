@@ -64,7 +64,6 @@ struct Message: Codable {
     }
 
     static func identify(
-        event _: String,
         userId: String,
         anonymousId: String,
         timestamp: Date = Date(),

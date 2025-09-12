@@ -6,45 +6,6 @@ public protocol AnalyticEvent {
     var attributes: [String: any Sendable]? { get }
 }
 
-public protocol UserAttribute {
-    associatedtype Value
-    var attributeName: String { get }
-}
-
-struct UserEmailAttribute: UserAttribute {
-    typealias Value = String
-    let attributeName: String = "__email"
-}
-
-public struct Configuration: Codable, Sendable {
-    public var apiKey: String
-    public var flushQueueSize: Int = 10
-    public var flushInterval: TimeInterval
-    public var optOut: Bool
-    public var useBatch: Bool
-    let serverUrl: URL
-    public var flushEventsOnClose: Bool
-
-    var logger: any RevenuePilotLogger {
-        RevenuePilotConsoleLogger()
-    }
-
-    public init(
-        apiKey: String,
-        flushInterval: TimeInterval = 5,
-        optOut: Bool = false,
-        useBatch: Bool = true,
-        flushEventsOnClose: Bool = true
-    ) {
-        self.apiKey = apiKey
-        self.flushInterval = flushInterval
-        self.optOut = optOut
-        self.useBatch = useBatch
-        serverUrl = URL(string: "https://cdp-api.revflow.dev")!
-        self.flushEventsOnClose = flushEventsOnClose
-    }
-}
-
 public final class RevenuePilot: Sendable {
     static let sdkVersion: String = "1.0.0"
     static let apiVersion: String = "1"
@@ -91,8 +52,20 @@ public final class RevenuePilot: Sendable {
         }
     }
 
-    public func identify(userId: String, traits _: [String: Any]? = nil) {
-        currentUserId = userId
+    public func identify(userId: String, traits: [String: Any]? = nil) {
+        let traitsToUpdate = traits?
+            .mapValues({
+                Message.TraitUpdateOperation(operation: .set, value: RevFlowPrimitive(rawValue: $0))
+            })
+        
+        Task(priority: .background) {
+            currentUserId = userId
+            await queue.emit(.identify(userId: userId,
+                                       anonymousId: anonymousId,
+                                       apiVersion: Self.apiVersion,
+                                       traits: traitsToUpdate,
+                                       context: Self.currentContext))
+        }
     }
 
     deinit {
@@ -123,4 +96,36 @@ private extension RevenuePilot {
             }
         }
     }
+}
+
+public extension RevenuePilot {
+    struct Configuration: Codable, Sendable {
+        public var apiKey: String
+        public var flushQueueSize: Int = 10
+        public var flushInterval: TimeInterval
+        public var optOut: Bool
+        public var useBatch: Bool
+        let serverUrl: URL
+        public var flushEventsOnClose: Bool
+
+        var logger: any RevenuePilotLogger {
+            RevenuePilotConsoleLogger()
+        }
+
+        public init(
+            apiKey: String,
+            flushInterval: TimeInterval = 5,
+            optOut: Bool = false,
+            useBatch: Bool = true,
+            flushEventsOnClose: Bool = true
+        ) {
+            self.apiKey = apiKey
+            self.flushInterval = flushInterval
+            self.optOut = optOut
+            self.useBatch = useBatch
+            serverUrl = URL(string: "https://cdp-api.revflow.dev")!
+            self.flushEventsOnClose = flushEventsOnClose
+        }
+    }
+
 }

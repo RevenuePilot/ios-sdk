@@ -57,6 +57,7 @@ extension RevenuePilot {
                 )
                 throw error
             }
+            
             configuration.logger.log(
                 .info, message: "CDPMessageConsumer: Successfully serialized params to JSON",
                 error: nil
@@ -72,6 +73,7 @@ extension RevenuePilot {
             JobBuilder(type: SendBatchingMessageJob.type)
                 .internet(atLeast: .cellular)
                 .persist()
+                .retry(limit: .unlimited)
                 .service(quality: .background)
                 .with(params: paramsJSON)
                 .schedule(manager: queueManager)
@@ -127,10 +129,12 @@ extension RevenuePilot {
         }
     }
 
-    private struct SendBatchingMessageJob: Job {
+    private struct SendBatchingMessageJob: Job, Sendable {
         static let type = "SendBatchingMessageJob"
 
         let params: SendBatchingMessageJobParams
+        
+        nonisolated(unsafe)
         private let defaultDateFormatter: ISO8601DateFormatter = {
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [
