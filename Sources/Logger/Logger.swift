@@ -5,7 +5,6 @@
 //  Created by Peter Vu on 12/9/25.
 //
 
-
 enum RevenuePilotLoggerLogLevel: Int {
     /// Basic information about scheduling, running job and completion
     case info = 1
@@ -13,7 +12,7 @@ enum RevenuePilotLoggerLogLevel: Int {
     case warning = 2
     /// Something went wrong during the scheduling or the execution
     case error = 3
-    
+
     var name: String {
         switch self {
         case .info:

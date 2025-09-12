@@ -24,7 +24,6 @@ import Foundation
 
 /// `JSONEncoder` and `JSONDecoder` to serialize JobInfo
 class DecodableSerializer: JobInfoSerializer {
-
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
@@ -43,37 +42,33 @@ class DecodableSerializer: JobInfoSerializer {
     func deserialize(json: String) throws -> JobInfo {
         try decoder.decode(JobInfo.self, from: json.utf8Data())
     }
-
 }
 
-internal extension KeyedDecodingContainer {
-
-    func decode(_ type: Data.Type, forKey key: KeyedDecodingContainer.Key) throws -> Data {
-        try self.decode(String.self, forKey: key).utf8Data()
+extension KeyedDecodingContainer {
+    func decode(_: Data.Type, forKey key: KeyedDecodingContainer.Key) throws -> Data {
+        try decode(String.self, forKey: key).utf8Data()
     }
 
-    func decode(_ type: [String: Any].Type, forKey key: KeyedDecodingContainer.Key) throws -> [String: Any] {
-        let data = try self.decode(Data.self, forKey: key)
+    func decode(_: [String: Any].Type, forKey key: KeyedDecodingContainer.Key) throws -> [String: Any] {
+        let data = try decode(Data.self, forKey: key)
         guard let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw DecodingError.dataCorrupted(DecodingError.Context(
-                    codingPath: [key],
-                    debugDescription: "Decoded value is not a dictionary")
+                codingPath: [key],
+                debugDescription: "Decoded value is not a dictionary"
+            )
             )
         }
         return dict
     }
-
 }
 
-internal extension KeyedEncodingContainer {
-
+extension KeyedEncodingContainer {
     mutating func encode(_ value: [String: Any], forKey key: KeyedEncodingContainer.Key) throws {
         let data = try JSONSerialization.data(withJSONObject: value)
-        try self.encode(String.fromUTF8(data: data, key: [key]), forKey: key)
+        try encode(String.fromUTF8(data: data, key: [key]), forKey: key)
     }
-
 }
 
 extension CodingUserInfoKey {
-    internal static let constraintMaker: CodingUserInfoKey = CodingUserInfoKey(rawValue: "constraints")!
+    static let constraintMaker: CodingUserInfoKey = .init(rawValue: "constraints")!
 }

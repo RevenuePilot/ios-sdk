@@ -20,13 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import Foundation
-import XCTest
 import Dispatch
+import Foundation
 @testable import RevenuePilot
+import XCTest
 
 class LoggerTests: XCTestCase {
-
     func testRunSuccessJobLogger() {
         let id = UUID().uuidString
 
@@ -38,8 +37,8 @@ class LoggerTests: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).set(logger: debugLogger).build()
         JobBuilder(type: type)
-                .singleInstance(forId: id)
-                .schedule(manager: manager)
+            .singleInstance(forId: id)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
@@ -55,7 +54,6 @@ class LoggerTests: XCTestCase {
     }
 
     func testLoggerLevel() {
-
         let verbose = DebugLogger(min: .verbose)
         let warning = DebugLogger(min: .warning)
         let error = DebugLogger(min: .error)
@@ -94,15 +92,12 @@ class LoggerTests: XCTestCase {
 
         XCTAssertEqual(error.outputs[0], "[SwiftQueue] level=\(LogLevel.error.description) jobId=\(error1) message=\(error2)")
     }
-
 }
 
 class DebugLogger: ConsoleLogger {
-
     var outputs = [String]()
 
     override func printComputed(output: String) {
         outputs.append(output)
     }
-
 }

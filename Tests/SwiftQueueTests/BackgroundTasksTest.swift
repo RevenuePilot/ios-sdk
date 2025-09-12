@@ -20,13 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import XCTest
 import Dispatch
 @testable import RevenuePilot
+import XCTest
 
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 class BackgroundTasksTest {
-
     @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
     public func testBackgroundOperationShouldNotRun() {
         let (type, job) = (UUID().uuidString, TestJob())
@@ -35,11 +34,11 @@ class BackgroundTasksTest {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .periodic(executor: .background)
-                .internet(atLeast: .wifi)
-                .priority(priority: .veryHigh)
-                .service(quality: .background)
-                .schedule(manager: manager)
+            .periodic(executor: .background)
+            .internet(atLeast: .wifi)
+            .priority(priority: .veryHigh)
+            .service(quality: .background)
+            .schedule(manager: manager)
 
         job.assertNoRun()
     }
@@ -59,7 +58,6 @@ class BackgroundTasksTest {
         XCTAssertEqual(constraint?.maxRun, Limit.limited(limited))
         XCTAssertEqual(constraint?.interval, interval)
         XCTAssertEqual(constraint?.executor, executor)
-
     }
 
     @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
@@ -105,5 +103,4 @@ class BackgroundTasksTest {
 
         XCTAssertEqual(2, result.count)
     }
-
 }

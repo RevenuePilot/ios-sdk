@@ -33,19 +33,16 @@ enum NetworkType: Int, Codable {
     case wifi = 2
 }
 
-internal protocol NetworkMonitor {
-
+protocol NetworkMonitor {
     func hasCorrectNetworkType(require: NetworkType) -> Bool
 
     func startMonitoring(networkType: NetworkType, operation: SqOperation)
-
 }
 
-internal class NWPathMonitorNetworkMonitor: NetworkMonitor {
-
+class NWPathMonitorNetworkMonitor: NetworkMonitor {
     private let monitor = NWPathMonitor()
 
-    func hasCorrectNetworkType(require: NetworkType) -> Bool {
+    func hasCorrectNetworkType(require _: NetworkType) -> Bool {
         if monitor.currentPath.status == .satisfied {
             monitor.pathUpdateHandler = nil
             return true
@@ -63,7 +60,8 @@ internal class NWPathMonitorNetworkMonitor: NetworkMonitor {
 
             /// If network type is wifi, make sure the path is not using cellular, otherwise wait
             if networkType == .wifi,
-               path.usesInterfaceType(.cellular) {
+               path.usesInterfaceType(.cellular)
+            {
                 operation.logger.log(.verbose, jobId: operation.name, message: "Unsatisfied network requirement")
                 return
             }
@@ -74,13 +72,11 @@ internal class NWPathMonitorNetworkMonitor: NetworkMonitor {
         }
         monitor.start(queue: operation.dispatchQueue)
     }
-
 }
 
-internal final class NetworkConstraint: SimpleConstraint, CodableConstraint {
-
+final class NetworkConstraint: SimpleConstraint, CodableConstraint {
     /// Require a certain connectivity type
-    internal let networkType: NetworkType
+    let networkType: NetworkType
 
     private let monitor: NetworkMonitor
 
@@ -101,7 +97,7 @@ internal final class NetworkConstraint: SimpleConstraint, CodableConstraint {
         } else { return nil }
     }
 
-    override func willSchedule(queue: SqOperationQueue, operation: SqOperation) throws {
+    override func willSchedule(queue _: SqOperationQueue, operation: SqOperation) throws {
         assert(operation.dispatchQueue != .main)
     }
 
@@ -122,5 +118,4 @@ internal final class NetworkConstraint: SimpleConstraint, CodableConstraint {
         var container = encoder.container(keyedBy: NetworkConstraintKey.self)
         try container.encode(networkType, forKey: .requireNetwork)
     }
-
 }

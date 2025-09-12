@@ -138,7 +138,7 @@ actor SQLiteMessageStorage: MessageStorage {
                     ? String(cString: sqlite3_column_text(statement, 3)) : nil
 
             let timestamp = Date(timeIntervalSince1970: sqlite3_column_double(statement, 4))
-            
+
             let apiVersion = String(cString: sqlite3_column_text(statement, 5))
             let event =
                 sqlite3_column_text(statement, 6) != nil

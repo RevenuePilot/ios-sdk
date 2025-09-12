@@ -22,16 +22,15 @@
 
 import Foundation
 
-internal final class RepeatConstraint: SimpleConstraint, CodableConstraint {
-
+final class RepeatConstraint: SimpleConstraint, CodableConstraint {
     /// Number of run maximum
-    internal let maxRun: Limit
+    let maxRun: Limit
 
     /// Time between each repetition of the job
-    internal let interval: TimeInterval
+    let interval: TimeInterval
 
     /// Executor to run job in foreground or background
-    internal let executor: Executor
+    let executor: Executor
 
     /// Current number of run
     private var runCount: Double = 0
@@ -46,26 +45,26 @@ internal final class RepeatConstraint: SimpleConstraint, CodableConstraint {
         let container = try decoder.container(keyedBy: RepeatConstraintKey.self)
         if container.contains(.maxRun) && container.contains(.interval) && container.contains(.executor) {
             try self.init(
-                    maxRun: container.decode(Limit.self, forKey: .maxRun),
-                    interval: container.decode(TimeInterval.self, forKey: .interval),
-                    executor: container.decode(Executor.self, forKey: .executor)
+                maxRun: container.decode(Limit.self, forKey: .maxRun),
+                interval: container.decode(TimeInterval.self, forKey: .interval),
+                executor: container.decode(Executor.self, forKey: .executor)
             )
         } else { return nil }
     }
 
-    override func run(operation: SqOperation) -> Bool {
+    override func run(operation _: SqOperation) -> Bool {
         switch executor {
         case .background:
             return false
         case .foreground:
             return true
-        case.any:
+        case .any:
             return true
         }
     }
 
     func completionSuccess(sqOperation: SqOperation) {
-        if case .limited(let limit) = maxRun {
+        if case let .limited(limit) = maxRun {
             // Reached run limit
             guard runCount + 1 < limit else {
                 sqOperation.onTerminate()
@@ -100,12 +99,10 @@ internal final class RepeatConstraint: SimpleConstraint, CodableConstraint {
         try container.encode(interval, forKey: .interval)
         try container.encode(executor, forKey: .executor)
     }
-
 }
 
 /// Enum to specify background and foreground restriction
 enum Executor: Int {
-
     /// Job will only run only when the app is in foreground
     case foreground = 0
 
@@ -114,11 +111,9 @@ enum Executor: Int {
 
     /// Job can run in both background and foreground
     case any = 2
-
 }
 
-internal extension Executor {
-
+extension Executor {
     static func fromRawValue(value: Int) -> Executor {
         assert(value == 0 || value == 1 || value == 2)
         switch value {
@@ -130,11 +125,9 @@ internal extension Executor {
             return Executor.foreground
         }
     }
-
 }
 
 extension Executor: Codable {
-
     private enum CodingKeys: String, CodingKey { case value }
 
     init(from decoder: Decoder) throws {
@@ -145,7 +138,6 @@ extension Executor: Codable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(self.rawValue, forKey: .value)
+        try container.encode(rawValue, forKey: .value)
     }
-
 }

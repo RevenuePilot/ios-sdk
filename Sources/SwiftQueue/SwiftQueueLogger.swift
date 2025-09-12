@@ -24,18 +24,15 @@ import Foundation
 
 /// Specify different importance of logging
 enum LogLevel: Int {
-
     /// Basic information about scheduling, running job and completion
     case verbose = 1
     /// Important but non fatal information
     case warning = 2
     /// Something went wrong during the scheduling or the execution
     case error = 3
-
 }
 
 extension LogLevel {
-
     /// Describe type of level in human-way
     var description: String {
         switch self {
@@ -51,15 +48,12 @@ extension LogLevel {
 
 /// Protocol to implement for implementing your custom logger
 protocol SwiftQueueLogger {
-
     /// Function called by the library to log an event
     func log(_ level: LogLevel, jobId: @autoclosure () -> String?, message: @autoclosure () -> String)
-
 }
 
 /// Class to compute the log and print to the console
 class ConsoleLogger: SwiftQueueLogger {
-
     private let min: LogLevel
 
     /// Define minimum level to log. By default, it will log everything
@@ -78,19 +72,17 @@ class ConsoleLogger: SwiftQueueLogger {
     func printComputed(output: String) {
         print(output)
     }
-
 }
 
 /// Class to ignore all kind of logs
 class NoLogger: SwiftQueueLogger {
-
     /// Singleton instance to avoid multiple instance across all queues
     nonisolated(unsafe) static let shared = NoLogger()
 
     private init() {}
 
     /// Default implementation that will not log anything
-    func log(_ level: LogLevel, jobId: @autoclosure () -> String?, message: @autoclosure () -> String) {
+    func log(_: LogLevel, jobId _: @autoclosure () -> String?, message _: @autoclosure () -> String) {
         // Nothing to do
     }
 }

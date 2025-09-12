@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestCharging: XCTestCase {
-
     func testChargingConstraintShouldRunNow() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -33,11 +32,10 @@ class ConstraintTestCharging: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .requireCharging()
-                .schedule(manager: manager)
+            .requireCharging()
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
     }
-
 }

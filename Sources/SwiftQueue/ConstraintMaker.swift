@@ -23,13 +23,10 @@
 import Foundation
 
 protocol ConstraintMaker {
-
     func make(from decoder: Decoder) throws -> [CodableConstraint]
-
 }
 
 class DefaultConstraintMaker: ConstraintMaker {
-
     // accessible for extension
     init() {}
 
@@ -37,7 +34,7 @@ class DefaultConstraintMaker: ConstraintMaker {
         var constraints: [CodableConstraint] = []
 
         #if os(iOS)
-        if let deadline = try BatteryChargingConstraint(from: decoder) { constraints.append(deadline) }
+            if let deadline = try BatteryChargingConstraint(from: decoder) { constraints.append(deadline) }
         #endif
 
         if let constraint = try DeadlineConstraint(from: decoder) { constraints.append(constraint) }
@@ -51,5 +48,4 @@ class DefaultConstraintMaker: ConstraintMaker {
 
         return constraints
     }
-
 }

@@ -20,20 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class StartStopTests: XCTestCase {
-
     func testScheduleWhenQueueStop() {
         let (type, job) = (UUID().uuidString, TestJob())
 
         let creator = TestCreator([type: job])
 
         let manager = SwiftQueueManagerBuilder(creator: creator)
-                .set(persister: NoPersister.shared)
-                .set(isSuspended: true)
-                .build()
+            .set(persister: NoPersister.shared)
+            .set(isSuspended: true)
+            .build()
 
         JobBuilder(type: type).schedule(manager: manager)
 
@@ -76,5 +75,4 @@ class StartStopTests: XCTestCase {
         job.assertCanceledCount(expected: 0)
         job.assertNoError()
     }
-
 }

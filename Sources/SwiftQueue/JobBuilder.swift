@@ -24,18 +24,17 @@ import Foundation
 
 /// Builder to create your job with behaviour
 final class JobBuilder {
-
-    internal var info: JobInfo
+    var info: JobInfo
 
     /// Type of your job that you will receive in JobCreator.create(type)
     init(type: String) {
         assertNotEmptyString(type)
-        self.info = JobInfo(type: type)
+        info = JobInfo(type: type)
     }
 
     /// Create a copy of another job params
     init(jobBuilder: JobBuilder) {
-        self.info = jobBuilder.info
+        info = jobBuilder.info
     }
 
     /// Allow only 1 job at the time with this ID scheduled or running if includeExecutingJob is true
@@ -186,5 +185,4 @@ final class JobBuilder {
         }
         manager.enqueue(info: info)
     }
-
 }

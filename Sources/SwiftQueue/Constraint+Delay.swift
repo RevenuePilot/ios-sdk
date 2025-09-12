@@ -22,10 +22,9 @@
 
 import Foundation
 
-internal final class DelayConstraint: SimpleConstraint, CodableConstraint {
-
+final class DelayConstraint: SimpleConstraint, CodableConstraint {
     /// Delay for the first execution of the job
-    internal let delay: TimeInterval
+    let delay: TimeInterval
 
     required init(delay: TimeInterval) {
         self.delay = delay
@@ -67,5 +66,4 @@ internal final class DelayConstraint: SimpleConstraint, CodableConstraint {
         var container = encoder.container(keyedBy: DelayConstraintKey.self)
         try container.encode(delay, forKey: .delay)
     }
-
 }

@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class CustomConstraintTest: XCTestCase {
-
     func testCustomConstraint() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -34,8 +33,8 @@ class CustomConstraintTest: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .add(constraint: constraint)
-                .schedule(manager: manager)
+            .add(constraint: constraint)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
@@ -44,26 +43,23 @@ class CustomConstraintTest: XCTestCase {
         XCTAssertTrue(constraint.willRunCalled)
         XCTAssertTrue(constraint.runCalled)
     }
-
 }
 
 class CustomConstraint: JobConstraint {
-
     var willScheduleCalled = false
     var willRunCalled = false
     var runCalled = false
 
-    func willSchedule(queue: SqOperationQueue, operation: SqOperation) throws {
+    func willSchedule(queue _: SqOperationQueue, operation _: SqOperation) throws {
         willScheduleCalled = true
     }
 
-    func willRun(operation: SqOperation) throws {
+    func willRun(operation _: SqOperation) throws {
         willRunCalled = true
     }
 
-    func run(operation: SqOperation) -> Bool {
+    func run(operation _: SqOperation) -> Bool {
         runCalled = true
         return true
     }
-
 }

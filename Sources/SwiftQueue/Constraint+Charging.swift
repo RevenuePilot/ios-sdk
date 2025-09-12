@@ -22,77 +22,73 @@
 
 import Foundation
 #if os(iOS)
-import UIKit
+    import UIKit
 #endif
 
 #if os(iOS)
-internal final class BatteryChargingConstraint: SimpleConstraint, CodableConstraint {
+    final class BatteryChargingConstraint: SimpleConstraint, CodableConstraint {
+        // To avoid cyclic ref
+        private weak var actual: SqOperation?
 
-    // To avoid cyclic ref
-    private weak var actual: SqOperation?
-
-    convenience init?(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: ChargingConstraintKey.self)
-        if container.contains(.charging) {
-            self.init()
-        } else { return nil }
-    }
-
-    func batteryStateDidChange(notification: NSNotification) {
-        if let job = actual, UIDevice.current.batteryState == .charging {
-            // Avoid job to run multiple times
-            actual = nil
-            job.run()
+        convenience init?(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: ChargingConstraintKey.self)
+            if container.contains(.charging) {
+                self.init()
+            } else { return nil }
         }
-    }
 
-    override func willSchedule(queue: SqOperationQueue, operation: SqOperation) throws {
-        /// Start listening
-        NotificationCenter.default.addObserver(
+        func batteryStateDidChange(notification _: NSNotification) {
+            if let job = actual, UIDevice.current.batteryState == .charging {
+                // Avoid job to run multiple times
+                actual = nil
+                job.run()
+            }
+        }
+
+        override func willSchedule(queue _: SqOperationQueue, operation _: SqOperation) throws {
+            /// Start listening
+            NotificationCenter.default.addObserver(
                 self,
                 selector: Selector(("batteryStateDidChange:")),
                 name: UIDevice.batteryStateDidChangeNotification,
                 object: nil
-        )
-    }
-
-    override func run(operation: SqOperation) -> Bool {
-        guard UIDevice.current.batteryState != .charging else {
-            return true
+            )
         }
 
-        operation.logger.log(.verbose, jobId: operation.name, message: "Unsatisfied charging requirement")
+        override func run(operation: SqOperation) -> Bool {
+            guard UIDevice.current.batteryState != .charging else {
+                return true
+            }
 
-        /// Keep actual job
-        actual = operation
-        return false
+            operation.logger.log(.verbose, jobId: operation.name, message: "Unsatisfied charging requirement")
+
+            /// Keep actual job
+            actual = operation
+            return false
+        }
+
+        deinit {
+            NotificationCenter.default.removeObserver(self)
+        }
+
+        private enum ChargingConstraintKey: String, CodingKey {
+            case charging
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: ChargingConstraintKey.self)
+            try container.encode(true, forKey: .charging)
+        }
+
+        func unregister() {
+            NotificationCenter.default.removeObserver(self)
+        }
     }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-
-    private enum ChargingConstraintKey: String, CodingKey {
-        case charging
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: ChargingConstraintKey.self)
-        try container.encode(true, forKey: .charging)
-    }
-
-    func unregister() {
-        NotificationCenter.default.removeObserver(self)
-    }
-
-}
 
 #else
 
-internal final class BatteryChargingConstraint: SimpleConstraint {
-
-    func unregister() {}
-
-}
+    final class BatteryChargingConstraint: SimpleConstraint {
+        func unregister() {}
+    }
 
 #endif

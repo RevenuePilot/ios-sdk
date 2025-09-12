@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestRepeat: XCTestCase {
-
     func testPeriodicJob() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -33,8 +32,8 @@ class ConstraintTestRepeat: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .periodic(limit: .limited(5))
-                .schedule(manager: manager)
+            .periodic(limit: .limited(5))
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 5)
@@ -63,8 +62,8 @@ class ConstraintTestRepeat: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .periodic(limit: .unlimited)
-                .schedule(manager: manager)
+            .periodic(limit: .unlimited)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: runLimit)
@@ -81,8 +80,8 @@ class ConstraintTestRepeat: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .periodic(limit: .limited(2), interval: Double.leastNonzeroMagnitude)
-                .schedule(manager: manager)
+            .periodic(limit: .limited(2), interval: Double.leastNonzeroMagnitude)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 2)
@@ -98,10 +97,10 @@ class ConstraintTestRepeat: XCTestCase {
         let creator = TestCreator([type: job])
 
         let task = JobBuilder(type: type)
-                .singleInstance(forId: jobId)
-                .periodic(limit: .limited(2), interval: Double.leastNonzeroMagnitude)
-                .build(job: job)
-                .toJSONStringSafe()
+            .singleInstance(forId: jobId)
+            .periodic(limit: .limited(2), interval: Double.leastNonzeroMagnitude)
+            .build(job: job)
+            .toJSONStringSafe()
 
         // Should invert when deserialize
         let persister = PersisterTracker(key: UUID().uuidString)
@@ -124,5 +123,4 @@ class ConstraintTestRepeat: XCTestCase {
 
         manager.waitUntilAllOperationsAreFinished()
     }
-
 }

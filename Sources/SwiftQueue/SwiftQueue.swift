@@ -30,22 +30,17 @@ import Foundation
 
 /// Protocol to create instance of your job
 protocol JobCreator {
-
     /// method called when a job has be to instantiate
     /// Type as specified in JobBuilder.init(type) and params as JobBuilder.with(params)
     func create(type: String, params: [String: Any]?) -> Job
-
 }
 
 protocol QueueCreator {
-
     func create(queueName: String) -> Queue
-
 }
 
 /// Method to implement to have a custom persister
 protocol JobPersister {
-
     /// Return an array of QueueName persisted
     func restore() -> [String]
 
@@ -60,47 +55,39 @@ protocol JobPersister {
 
     /// Remove all task
     func clearAll()
-
 }
 
 /// Class to serialize and deserialize `JobInfo`
 protocol JobInfoSerializer {
-
     /// Convert `JobInfo` into a representable string
     func serialize(info: JobInfo) throws -> String
 
     /// Convert back a string to a `JobInfo`
     func deserialize(json: String) throws -> JobInfo
-
 }
 
 /// Callback to give result in synchronous or asynchronous job
 protocol JobResult {
-
-    /// Method callback to notify the completion of your 
+    /// Method callback to notify the completion of your
     func done(_ result: JobCompletion)
-
 }
 
 /// Enum to define possible Job completion values
 enum JobCompletion {
-
     /// Job completed successfully
     case success
 
     /// Job completed with error
     case fail(Error)
-
 }
 
 /// Protocol to implement to run a job
 protocol Job {
-
     /// Perform your operation
     /// Will be called in background thread
     func onRun(callback: JobResult)
 
-    /// Fail has failed with the 
+    /// Fail has failed with the
     /// Will only gets called if the job can be retried
     /// Not applicable for 'ConstraintError'
     /// Not application if the retry(value) is less than 2 which is the case by default
@@ -110,11 +97,9 @@ protocol Job {
     /// Job is removed from the queue and will never run again
     /// May be called in background or main thread
     func onRemove(result: JobCompletion)
-
 }
 
 class LambdaJob: Job {
-
     private let lambda: () throws -> Void
     private let retry: RetryConstraint
 
@@ -127,26 +112,24 @@ class LambdaJob: Job {
         do {
             try lambda()
             callback.done(.success)
-        } catch let error {
+        } catch {
             callback.done(.fail(error))
         }
     }
 
-    func onRetry(error: Error) -> RetryConstraint {
+    func onRetry(error _: Error) -> RetryConstraint {
         return retry
     }
 
-    func onRemove(result: JobCompletion) {
+    func onRemove(result _: JobCompletion) {
         /// Nothing
     }
 }
 
 protocol Queue {
-
     var name: String { get }
 
     var maxConcurrent: Int { get }
-
 }
 
 enum BasicQueue {
@@ -156,7 +139,6 @@ enum BasicQueue {
 }
 
 class BasicQueueCreator: QueueCreator {
-
     init() {}
 
     func create(queueName: String) -> Queue {
@@ -166,16 +148,14 @@ class BasicQueueCreator: QueueCreator {
         default: return BasicQueue.custom(queueName)
         }
     }
-
 }
 
 extension BasicQueue: Queue {
-
     var name: String {
         switch self {
         case .synchronous: return "GLOBAL"
         case .concurrent: return "MULTIPLE"
-        case .custom(let variable): return variable
+        case let .custom(variable): return variable
         }
     }
 
@@ -186,12 +166,10 @@ extension BasicQueue: Queue {
         case .custom: return 1
         }
     }
-
 }
 
 /// Listen from job status
 protocol JobListener {
-
     /// Job is added to the queue
     func onJobScheduled(job: JobInfo)
 
@@ -203,23 +181,19 @@ protocol JobListener {
 
     /// Job is removed from the queue and will not run anymore
     func onTerminated(job: JobInfo, result: JobCompletion)
-
 }
 
 /// Enum to specify a limit
 enum Limit {
-
     /// No limit
     case unlimited
 
     /// Limited to a specific number
     case limited(Double)
-
 }
 
 /// Generic class for any constraint violation
 enum SwiftQueueError: Error {
-
     /// Job has been canceled
     case canceled
 
@@ -234,5 +208,4 @@ enum SwiftQueueError: Error {
 
     /// Job took too long to run
     case timeout
-
 }

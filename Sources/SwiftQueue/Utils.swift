@@ -20,45 +20,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import Foundation
 import Dispatch
+import Foundation
 
-internal extension DispatchQueue {
-
+extension DispatchQueue {
     func runAfter(_ seconds: TimeInterval, callback: @escaping () -> Void) {
         let delta = DispatchTime.now() + seconds
         asyncAfter(deadline: delta, execute: callback)
     }
-
 }
 
 func assertNotEmptyString(_ string: @autoclosure () -> String, file: StaticString = #file, line: UInt = #line) {
     assert(!string().isEmpty, file: file, line: line)
 }
 
-internal extension Limit {
-
+extension Limit {
     var validate: Bool {
         switch self {
         case .unlimited:
             return true
-        case .limited(let val):
+        case let .limited(val):
             return val >= 0
         }
     }
 
     mutating func decreaseValue(by: Double) {
-        if case .limited(let limit) = self {
+        if case let .limited(limit) = self {
             let value = limit - by
             assert(value >= 0)
             self = Limit.limited(value)
         }
     }
-
 }
 
 extension Limit: Codable {
-
     private enum CodingKeys: String, CodingKey { case value }
 
     init(from decoder: Decoder) throws {
@@ -72,16 +67,14 @@ extension Limit: Codable {
         switch self {
         case .unlimited:
             try container.encode(-1, forKey: .value)
-        case .limited(let value):
+        case let .limited(value):
             assert(value >= 0)
             try container.encode(value, forKey: .value)
         }
     }
-
 }
 
 extension Limit: Equatable {
-
     static func == (lhs: Limit, rhs: Limit) -> Bool {
         switch (lhs, rhs) {
         case let (.limited(lValue), .limited(rValue)):
@@ -94,8 +87,7 @@ extension Limit: Equatable {
     }
 }
 
-internal extension Operation.QueuePriority {
-
+extension Operation.QueuePriority {
     init(fromValue: Int?) {
         guard let value = fromValue, let priority = Operation.QueuePriority(rawValue: value) else {
             self = Operation.QueuePriority.normal
@@ -103,11 +95,9 @@ internal extension Operation.QueuePriority {
         }
         self = priority
     }
-
 }
 
-internal extension QualityOfService {
-
+extension QualityOfService {
     init(fromValue: Int?) {
         guard let value = fromValue, let service = QualityOfService(rawValue: value) else {
             self = QualityOfService.default
@@ -115,39 +105,38 @@ internal extension QualityOfService {
         }
         self = service
     }
-
 }
 
-internal extension String {
-
+extension String {
     static func fromUTF8(data: Data, key: [CodingKey] = []) throws -> String {
         guard let utf8 = String(data: data, encoding: .utf8) else {
             throw DecodingError.dataCorrupted(DecodingError.Context(
-                    codingPath: key,
-                    debugDescription: "Unexpected error")
+                codingPath: key,
+                debugDescription: "Unexpected error"
+            )
             )
         }
         return utf8
     }
 
     func utf8Data() throws -> Data {
-        guard let data = self.data(using: .utf8) else {
+        guard let data = data(using: .utf8) else {
             throw DecodingError.dataCorrupted(DecodingError.Context(
-                    codingPath: [],
-                    debugDescription: "Unexpected error")
+                codingPath: [],
+                debugDescription: "Unexpected error"
+            )
             )
         }
         return data
     }
-
 }
 
-internal func getConstraint<T: JobConstraint>(_ operation: JobInfo?) -> T? {
+func getConstraint<T: JobConstraint>(_ operation: JobInfo?) -> T? {
     guard let constraints = operation?.constraints else { return nil }
     return getConstraint(constraints)
 }
 
-internal func getConstraint<T: JobConstraint>(_ constraints: [JobConstraint]) -> T? {
+func getConstraint<T: JobConstraint>(_ constraints: [JobConstraint]) -> T? {
     for case let constraint as T in constraints {
         return constraint
     }

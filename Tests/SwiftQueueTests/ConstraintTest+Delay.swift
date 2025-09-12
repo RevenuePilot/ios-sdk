@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestDelay: XCTestCase {
-
     func testDelay() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -33,13 +32,12 @@ class ConstraintTestDelay: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .delay(time: 0.1)
-                .schedule(manager: manager)
+            .delay(time: 0.1)
+            .schedule(manager: manager)
 
         manager.waitUntilAllOperationsAreFinished()
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
     }
-
 }

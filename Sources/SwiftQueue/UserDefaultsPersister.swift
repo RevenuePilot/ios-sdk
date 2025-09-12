@@ -24,7 +24,6 @@ import Foundation
 
 /// Persist jobs in UserDefaults
 class UserDefaultsPersister: JobPersister {
-
     private let store = UserDefaults()
     private let key: String
 
@@ -70,5 +69,4 @@ class UserDefaultsPersister: JobPersister {
     func clearAll() {
         store.removeObject(forKey: key)
     }
-
 }

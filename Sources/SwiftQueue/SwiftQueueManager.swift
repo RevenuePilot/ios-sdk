@@ -20,15 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import Foundation
 import Dispatch
+import Foundation
 
 /// Global manager to perform operations on all your queues/
 /// You will have to keep this instance. We highly recommend you to store this instance in a Singleton
 /// Creating and instance of this class will automatically un-serialize your jobs and schedule them
 final class SwiftQueueManager: @unchecked Sendable {
-
-    internal let params: SqManagerParams
+    let params: SqManagerParams
 
     /// Allow jobs in queue to be executed.
     var isSuspended: Bool {
@@ -41,7 +40,7 @@ final class SwiftQueueManager: @unchecked Sendable {
 
     private var manage = [String: SqOperationQueue]()
 
-    internal init(params: SqManagerParams, isSuspended: Bool) {
+    init(params: SqManagerParams, isSuspended: Bool) {
         self.params = params
         self.isSuspended = isSuspended
 
@@ -50,11 +49,11 @@ final class SwiftQueueManager: @unchecked Sendable {
         }
     }
 
-    internal func getQueue(queueName: String) -> SqOperationQueue {
+    func getQueue(queueName: String) -> SqOperationQueue {
         return manage[queueName] ?? createQueue(queueName: queueName, initInBackground: false)
     }
 
-    private func createQueue(queueName: String, initInBackground: Bool) -> SqOperationQueue {
+    private func createQueue(queueName: String, initInBackground _: Bool) -> SqOperationQueue {
         let operationQueue = SqOperationQueue(params, params.queueCreator.create(queueName: queueName), isSuspended)
         manage[queueName] = operationQueue
         return operationQueue
@@ -111,7 +110,6 @@ final class SwiftQueueManager: @unchecked Sendable {
             element.waitUntilAllOperationsAreFinished()
         }
     }
-
 }
 
 /// Extension to query Job Manager
@@ -135,18 +133,17 @@ extension SwiftQueueManager {
     }
 }
 
-internal extension SwiftQueueManager {
-
+extension SwiftQueueManager {
     func getAllAllowBackgroundOperation() -> [SqOperation] {
         return manage.values
-                .flatMap { $0.operations }
-                .compactMap { $0 as? SqOperation }
-                .filter {
-                    if let constraint: RepeatConstraint = getConstraint($0.info) {
-                        return constraint.executor.rawValue > Executor.foreground.rawValue
-                    }
-                    return false
+            .flatMap { $0.operations }
+            .compactMap { $0 as? SqOperation }
+            .filter {
+                if let constraint: RepeatConstraint = getConstraint($0.info) {
+                    return constraint.executor.rawValue > Executor.foreground.rawValue
                 }
+                return false
+            }
     }
 
     func getOperation(forUUID: String) -> SqOperation? {
@@ -159,8 +156,7 @@ internal extension SwiftQueueManager {
     }
 }
 
-internal struct SqManagerParams {
-
+struct SqManagerParams {
     let jobCreator: JobCreator
 
     let queueCreator: QueueCreator
@@ -187,8 +183,8 @@ internal struct SqManagerParams {
          listener: JobListener? = nil,
          initInBackground: Bool = false,
          dispatchQueue: DispatchQueue = DispatchQueue.global(qos: DispatchQoS.QoSClass.utility),
-         enqueueThread: DispatchQueue? = nil
-    ) {
+         enqueueThread: DispatchQueue? = nil)
+    {
         self.jobCreator = jobCreator
         self.queueCreator = queueCreator
         self.persister = persister
@@ -199,12 +195,10 @@ internal struct SqManagerParams {
         self.dispatchQueue = dispatchQueue
         self.enqueueThread = enqueueThread
     }
-
 }
 
 /// Entry point to create a `SwiftQueueManager`
 final class SwiftQueueManagerBuilder: @unchecked Sendable {
-
     private var params: SqManagerParams
     private var isSuspended: Bool = false
 
@@ -267,5 +261,4 @@ final class SwiftQueueManagerBuilder: @unchecked Sendable {
     func build() -> SwiftQueueManager {
         return SwiftQueueManager(params: params, isSuspended: isSuspended)
     }
-
 }

@@ -5,12 +5,13 @@ let package = Package(
     name: "RevenuePilot",
     platforms: [
         .iOS(.v13),
-        .macOS(.v12)
+        .macOS(.v12),
     ],
     products: [
         .library(
             name: "RevenuePilot",
-            targets: ["RevenuePilot"]),
+            targets: ["RevenuePilot"]
+        ),
     ],
     dependencies: [],
     targets: [
@@ -18,13 +19,13 @@ let package = Package(
             name: "RevenuePilot",
             path: "Sources",
             linkerSettings: [
-                .linkedLibrary("sqlite3")
+                .linkedLibrary("sqlite3"),
             ]
         ),
         .testTarget(
             name: "RevenuePilotTests",
             dependencies: ["RevenuePilot"],
             path: "Tests"
-        )
+        ),
     ]
 )

@@ -39,44 +39,51 @@ struct Message: Codable {
     let properties: [String: RevFlowPrimitive]?
     let traits: [String: TraitUpdateOperation]?
     let context: Context
-    
-    static func track(event: String,
-                      userId: String?,
-                      anonymousId: String?,
-                      timestamp: Date = Date(),
-                      apiVersion: String,
-                      properties: [String: Any]?,
-                      context: Context) -> Self {
-        
-        return .init(id: UUID().uuidString,
-                     type: .track,
-                     userId: userId,
-                     anonymousId: anonymousId,
-                     timestamp: timestamp,
-                     apiVersion: apiVersion,
-                     event: event,
-                     properties: properties,
-                     traits: nil,
-                     context: context)
+
+    static func track(
+        event: String,
+        userId: String?,
+        anonymousId: String?,
+        timestamp: Date = Date(),
+        apiVersion: String,
+        properties: [String: Any]?,
+        context: Context
+    ) -> Self {
+        return .init(
+            id: UUID().uuidString,
+            type: .track,
+            userId: userId,
+            anonymousId: anonymousId,
+            timestamp: timestamp,
+            apiVersion: apiVersion,
+            event: event,
+            properties: properties,
+            traits: nil,
+            context: context
+        )
     }
-    
-    static func identify(event: String,
-                         userId: String,
-                         anonymousId: String,
-                         timestamp: Date = Date(),
-                         apiVersion: String,
-                         traits: [String: TraitUpdateOperation]?,
-                         context: Context) -> Self {
-        return .init(id: UUID().uuidString,
-                     type: .identify,
-                     userId: userId,
-                     anonymousId: anonymousId,
-                     timestamp: timestamp,
-                     apiVersion: apiVersion,
-                     event: nil,
-                     properties: nil,
-                     traits: traits,
-                     context: context)
+
+    static func identify(
+        event _: String,
+        userId: String,
+        anonymousId: String,
+        timestamp: Date = Date(),
+        apiVersion: String,
+        traits: [String: TraitUpdateOperation]?,
+        context: Context
+    ) -> Self {
+        return .init(
+            id: UUID().uuidString,
+            type: .identify,
+            userId: userId,
+            anonymousId: anonymousId,
+            timestamp: timestamp,
+            apiVersion: apiVersion,
+            event: nil,
+            properties: nil,
+            traits: traits,
+            context: context
+        )
     }
 
     init(
@@ -100,7 +107,7 @@ struct Message: Codable {
         self.event = event
 
         if let properties, !properties.isEmpty {
-            self.properties = properties.compactMapValues({ RevFlowPrimitive(rawValue: $0) })
+            self.properties = properties.compactMapValues { RevFlowPrimitive(rawValue: $0) }
         } else {
             self.properties = nil
         }
@@ -110,9 +117,9 @@ struct Message: Codable {
     }
 
     enum MessageType: String, Codable {
-        case track = "track"
-        case identify = "identify"
-        case alias = "alias"
+        case track
+        case identify
+        case alias
     }
 
     struct Context: Codable {
@@ -205,7 +212,9 @@ struct RevFlowPrimitive: Codable {
             throw EncodingError.invalidValue(
                 self,
                 EncodingError.Context(
-                    codingPath: encoder.codingPath, debugDescription: "Invalid RevFlowPrimitive"))
+                    codingPath: encoder.codingPath, debugDescription: "Invalid RevFlowPrimitive"
+                )
+            )
         }
     }
 
@@ -221,7 +230,8 @@ struct RevFlowPrimitive: Codable {
             self.boolValue = boolValue
         } else {
             throw DecodingError.dataCorruptedError(
-                in: container, debugDescription: "Invalid RevFlowPrimitive")
+                in: container, debugDescription: "Invalid RevFlowPrimitive"
+            )
         }
     }
 }

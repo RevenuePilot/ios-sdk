@@ -21,21 +21,20 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestTimeout: XCTestCase {
-
     func testRunTimeoutConstraint() {
-        let (type, job) = (UUID().uuidString, TestJob(onRunCallback: { _ in }) )
+        let (type, job) = (UUID().uuidString, TestJob(onRunCallback: { _ in }))
 
         let creator = TestCreator([type: job])
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
 
         JobBuilder(type: type)
-                .timeout(value: 0)
-                .schedule(manager: manager)
+            .timeout(value: 0)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 1)
@@ -44,5 +43,4 @@ class ConstraintTestTimeout: XCTestCase {
         job.assertCanceledCount(expected: 1)
         job.assertError(queueError: .timeout)
     }
-
 }

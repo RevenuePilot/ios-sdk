@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestUniqueUUID: XCTestCase {
-
     func testUniqueIdConstraintShouldCancelTheSecond() {
         let (type1, job1) = (UUID().uuidString, TestJob())
         let (type2, job2) = (UUID().uuidString, TestJob())
@@ -36,9 +35,9 @@ class ConstraintTestUniqueUUID: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type1)
-                .singleInstance(forId: id)
-                .delay(time: 3600)
-                .schedule(manager: manager)
+            .singleInstance(forId: id)
+            .delay(time: 3600)
+            .schedule(manager: manager)
 
         JobBuilder(type: type2).singleInstance(forId: id).schedule(manager: manager)
 
@@ -59,13 +58,13 @@ class ConstraintTestUniqueUUID: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type1)
-                .singleInstance(forId: id)
-                .delay(time: 3600)
-                .schedule(manager: manager)
+            .singleInstance(forId: id)
+            .delay(time: 3600)
+            .schedule(manager: manager)
 
         JobBuilder(type: type2)
-                .singleInstance(forId: id, override: true)
-                .schedule(manager: manager)
+            .singleInstance(forId: id, override: true)
+            .schedule(manager: manager)
 
         job1.awaitForRemoval()
         job1.assertRemovedBeforeRun(reason: .canceled)
@@ -76,5 +75,4 @@ class ConstraintTestUniqueUUID: XCTestCase {
         manager.cancelAllOperations()
         manager.waitUntilAllOperationsAreFinished()
     }
-
 }

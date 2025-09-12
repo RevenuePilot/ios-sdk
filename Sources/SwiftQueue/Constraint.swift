@@ -23,43 +23,37 @@
 import Foundation
 
 protocol JobConstraint {
-
     /**
-        - Operation will be added to the queue
-        Raise exception if the job cannot run
-    */
+         - Operation will be added to the queue
+         Raise exception if the job cannot run
+     */
     func willSchedule(queue: SqOperationQueue, operation: SqOperation) throws
 
     /**
-        - Operation will run
-        Raise exception if the job cannot run anymore
-    */
+         - Operation will run
+         Raise exception if the job cannot run anymore
+     */
     func willRun(operation: SqOperation) throws
 
     /**
-        - Operation will run
-        Return false if the job cannot run immediately
-    */
+         - Operation will run
+         Return false if the job cannot run immediately
+     */
     func run(operation: SqOperation) -> Bool
-
 }
 
 protocol CodableConstraint: Encodable, JobConstraint {
-
     /**
-        Build constraint when deserialize
-        Return nil if the constraint does not apply
-    */
+         Build constraint when deserialize
+         Return nil if the constraint does not apply
+     */
     init?(from decoder: Decoder) throws
-
 }
 
 class SimpleConstraint: JobConstraint {
+    func willSchedule(queue _: SqOperationQueue, operation _: SqOperation) throws {}
 
-    func willSchedule(queue: SqOperationQueue, operation: SqOperation) throws {}
+    func willRun(operation _: SqOperation) throws {}
 
-    func willRun(operation: SqOperation) throws {}
-
-    func run(operation: SqOperation) -> Bool { true }
-
+    func run(operation _: SqOperation) -> Bool { true }
 }

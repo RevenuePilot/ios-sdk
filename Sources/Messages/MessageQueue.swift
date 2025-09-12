@@ -20,77 +20,76 @@ actor MessageQueue {
 
         var batchingWindow: BatchingWindow?
     }
-    
+
     enum State {
         case idle
         case processing
         case stopped
     }
-    
+
     private let storage: any MessageStorage
     private let consumer: any MessageConsumer
     private let options: QueueOptions?
     private var state: State = .idle
     private var processingTask: Task<Void, Never>?
-    
+
     init(consumer: any MessageConsumer, options: QueueOptions? = nil, name: String? = nil) {
         self.consumer = consumer
         self.options = options
         let queueName = name ?? "__DEFAULT"
-        
+
         do {
             let containerPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path ?? NSTemporaryDirectory()
             let dbFileURL = URL(fileURLWithPath: containerPath).appendingPathExtension("\(queueName).db")
-            self.storage = try SQLiteMessageStorage(dbPath: dbFileURL.path)
+            storage = try SQLiteMessageStorage(dbPath: dbFileURL.path)
         } catch {
-            self.storage = InMemoryMessageStorage()
+            storage = InMemoryMessageStorage()
         }
     }
-    
+
     func emit(_ message: Message) async {
         do {
             // Store message sequentially to guarantee FIFO order
             try await storage.storeMessage(message)
-            
+
             // Trigger processing based on options
             await triggerProcessingIfNeeded()
         } catch {
             print("ERROR: Failed to store message: \(error)")
         }
     }
-    
-    
+
     var size: Int {
         get async throws {
             try await storage.getQueueSize()
         }
     }
-    
+
     func clearQueue() async throws {
         processingTask?.cancel()
         try await storage.clearQueue()
     }
-    
+
     deinit {
         processingTask?.cancel()
     }
-    
+
     func startRunloop() async {
         guard state == .idle else { return }
         state = .processing
-        
+
         // Process any existing messages immediately
         await processAllMessages()
-        
+
         // Start continuous processing if batching is configured
         if let batchingWindow = options?.batchingWindow {
             startBatchTimer(window: batchingWindow)
         }
     }
-    
+
     private func triggerProcessingIfNeeded() async {
         guard state == .processing else { return }
-        
+
         if let batchingWindow = options?.batchingWindow {
             // Check if we should process due to batch size
             do {
@@ -108,7 +107,7 @@ actor MessageQueue {
             await processAllMessages()
         }
     }
-    
+
     private func startBatchTimer(window: QueueOptions.BatchingWindow) {
         processingTask?.cancel()
         processingTask = Task {
@@ -125,23 +124,23 @@ actor MessageQueue {
             }
         }
     }
-    
+
     private func processAllMessages() async {
         guard state == .processing else { return }
-        
+
         while state == .processing {
             do {
                 let batchSize = options?.batchingWindow?.maxCount ?? 100
                 let messages = try await storage.fetchMessages(limit: batchSize)
-                
+
                 if messages.isEmpty {
                     break // No more messages
                 }
-                
+
                 // Process messages
                 do {
                     try await consumer.consume(messages: messages)
-                    
+
                     // Remove processed messages only on success
                     try await storage.deleteMessages(messages.map { $0.id })
                 } catch {
@@ -151,7 +150,7 @@ actor MessageQueue {
                     try? await Task.sleep(nanoseconds: 100_000_000) // 100ms backoff
                     break // Stop processing this batch, but continue later
                 }
-                
+
             } catch {
                 print("Failed to fetch messages: \(error)")
                 // Storage error - wait longer before retry
@@ -160,11 +159,10 @@ actor MessageQueue {
             }
         }
     }
-    
+
     func stop() async {
         state = .stopped
         processingTask?.cancel()
         processingTask = nil
     }
 }
-

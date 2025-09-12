@@ -22,18 +22,16 @@
 
 import Foundation
 
-import XCTest
 import Dispatch
 @testable import RevenuePilot
+import XCTest
 
 class SwiftQueueBuilderTests: XCTestCase {
-
     public func testBuilderJobType() throws {
         let type = UUID().uuidString
 
         let jobInfo = JobBuilder(type: type).info
         XCTAssertEqual(jobInfo.type, type)
-
     }
 
     public func testBuilderSingleInstance() throws {
@@ -165,8 +163,8 @@ class SwiftQueueBuilderTests: XCTestCase {
 
         let creator = TestCreator([type: TestJob()])
         let manager = SwiftQueueManagerBuilder(creator: creator)
-                .set(persister: NoPersister.shared)
-                .build()
+            .set(persister: NoPersister.shared)
+            .build()
 
         // No assert expected
         // This is just to test if the serialization failed on self
@@ -191,5 +189,4 @@ class SwiftQueueBuilderTests: XCTestCase {
         let constraint: NetworkConstraint? = getConstraint(builder.info)
         XCTAssertNil(constraint)
     }
-
 }

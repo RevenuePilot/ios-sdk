@@ -22,8 +22,7 @@
 
 import Foundation
 
-internal class PersisterConstraint: SimpleConstraint {
-
+class PersisterConstraint: SimpleConstraint {
     private let serializer: JobInfoSerializer
 
     private let persister: JobPersister
@@ -45,5 +44,4 @@ internal class PersisterConstraint: SimpleConstraint {
     func remove(queueName: String, taskId: String) {
         persister.remove(queueName: queueName, taskId: taskId)
     }
-
 }

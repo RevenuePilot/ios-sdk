@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestRetry: XCTestCase {
-
     func testRetryUnlimitedShouldRetryManyTimes() {
         let runLimit = 100
         var runCount = 0
@@ -45,8 +44,8 @@ class ConstraintTestRetry: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .retry(limit: .unlimited)
-                .schedule(manager: manager)
+            .retry(limit: .unlimited)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: runLimit)
@@ -65,8 +64,8 @@ class ConstraintTestRetry: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .retry(limit: .limited(2))
-                .schedule(manager: manager)
+            .retry(limit: .limited(2))
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 1)
@@ -84,8 +83,8 @@ class ConstraintTestRetry: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .retry(limit: .limited(2))
-                .schedule(manager: manager)
+            .retry(limit: .limited(2))
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 3)
@@ -103,8 +102,8 @@ class ConstraintTestRetry: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .retry(limit: .limited(2))
-                .schedule(manager: manager)
+            .retry(limit: .limited(2))
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 3)
@@ -122,9 +121,9 @@ class ConstraintTestRetry: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .retry(limit: .limited(1))
-                .periodic()
-                .schedule(manager: manager)
+            .retry(limit: .limited(1))
+            .periodic()
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 2)
@@ -141,8 +140,8 @@ class ConstraintTestRetry: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .retry(limit: .limited(2))
-                .schedule(manager: manager)
+            .retry(limit: .limited(2))
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 3)
@@ -160,8 +159,8 @@ class ConstraintTestRetry: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .retry(limit: .limited(2))
-                .schedule(manager: manager)
+            .retry(limit: .limited(2))
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 3)
@@ -170,5 +169,4 @@ class ConstraintTestRetry: XCTestCase {
         job.assertCanceledCount(expected: 1)
         job.assertError()
     }
-
 }

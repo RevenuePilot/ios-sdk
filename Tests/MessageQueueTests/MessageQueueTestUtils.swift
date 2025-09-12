@@ -5,85 +5,85 @@
 //  Created by Claude Code on 11/9/25.
 //
 
-import Foundation
-import XCTest
 import Dispatch
+import Foundation
 @testable import RevenuePilot
+import XCTest
 
 class MockMessageConsumer: MessageConsumer, @unchecked Sendable {
     private var consumeCallback: (([Message]) async throws -> Void)?
     private var consumeCallbacks: [([Message]) async throws -> Void] = []
-    
+
     var consumedMessages: [[Message]] = []
     var consumeCount = 0
     var totalMessagesConsumed = 0
     var errorToThrow: Error?
-    
+
     private let semaphore = DispatchSemaphore(value: 0)
     private var expectedBatches = 0
     private var receivedBatches = 0
-    
+
     // Unique identifier to avoid cross-test contamination
     private let id = UUID().uuidString
-    
+
     init(onConsume: (([Message]) async throws -> Void)? = nil) {
-        self.consumeCallback = onConsume
+        consumeCallback = onConsume
     }
-    
+
     func consume(messages: [Message]) async throws {
         consumedMessages.append(messages)
         consumeCount += 1
         totalMessagesConsumed += messages.count
         receivedBatches += 1
-        
+
         if let error = errorToThrow {
             throw error
         }
-        
+
         if let callback = consumeCallback {
             try await callback(messages)
-        } else if !consumeCallbacks.isEmpty && consumeCallbacks.count >= consumeCount {
+        } else if !consumeCallbacks.isEmpty, consumeCallbacks.count >= consumeCount {
             try await consumeCallbacks[consumeCount - 1](messages)
         }
-        
+
         if receivedBatches >= expectedBatches {
             semaphore.signal()
         }
     }
-    
-    func expectBatches(count: Int, timeout: TimeInterval = 10.0) {
+
+    func expectBatches(count: Int, timeout _: TimeInterval = 10.0) {
         expectedBatches = count
         receivedBatches = 0
     }
-    
+
     func waitForExpectedBatches(timeout: TimeInterval = 10.0) -> Bool {
         let timeoutTime = DispatchTime.now() + timeout
         return semaphore.wait(timeout: timeoutTime) == .success
     }
-    
+
     func addCallback(_ callback: @escaping ([Message]) async throws -> Void) {
         consumeCallbacks.append(callback)
     }
-    
+
     func assertConsumedMessagesCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
         XCTAssertEqual(totalMessagesConsumed, expected, "Expected \(expected) total messages, got \(totalMessagesConsumed)", file: file, line: line)
     }
-    
+
     func assertBatchCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
         XCTAssertEqual(consumeCount, expected, "Expected \(expected) batches, got \(consumeCount)", file: file, line: line)
     }
-    
+
     func assertMessageOrder(expectedIds: [String], file: StaticString = #file, line: UInt = #line) {
         let allMessages = consumedMessages.flatMap { $0 }
         let actualIds = allMessages.map { $0.id }
         XCTAssertEqual(actualIds, expectedIds, "Message order mismatch", file: file, line: line)
     }
-    
+
     func assertBatchSizes(expected: [Int], file: StaticString = #file, line: UInt = #line) {
         let actualBatchSizes = consumedMessages.map { $0.count }
         XCTAssertEqual(actualBatchSizes, expected, "Batch size mismatch", file: file, line: line)
     }
-    
+
     func reset() {
         consumedMessages.removeAll()
         consumeCount = 0
@@ -107,7 +107,7 @@ extension Message {
     ) -> Message {
         let messageId = id ?? UUID().uuidString
         let now = Date()
-        
+
         let context = Message.Context(
             app: Message.App(
                 name: "TestApp",
@@ -136,7 +136,7 @@ extension Message {
             ),
             extra: nil
         )
-        
+
         return Message(
             id: messageId,
             type: type,
@@ -150,9 +150,9 @@ extension Message {
             context: context
         )
     }
-    
+
     static func createTestMessages(count: Int, idPrefix: String = "msg") -> [Message] {
-        return (0..<count).map { index in
+        return (0 ..< count).map { index in
             createTestMessage(
                 id: "\(idPrefix)_\(String(format: "%03d", index))",
                 event: "test_event_\(index)"
@@ -163,7 +163,7 @@ extension Message {
 
 actor MessageQueueError: Error {
     let message: String
-    
+
     init(_ message: String) {
         self.message = message
     }
@@ -178,14 +178,14 @@ extension MessageQueueError: Equatable {
 class AsyncTestHelper {
     static func wait(for condition: @escaping () async throws -> Bool, timeout: TimeInterval = 10.0, pollingInterval: TimeInterval = 0.1) async throws {
         let startTime = Date()
-        
+
         while Date().timeIntervalSince(startTime) < timeout {
             if try await condition() {
                 return
             }
             try await Task.sleep(nanoseconds: UInt64(pollingInterval * 1_000_000_000))
         }
-        
+
         throw MessageQueueError("Timeout waiting for condition")
     }
 }

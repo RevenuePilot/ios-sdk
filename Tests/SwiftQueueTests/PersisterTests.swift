@@ -20,13 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import Foundation
-import XCTest
 import Dispatch
+import Foundation
 @testable import RevenuePilot
+import XCTest
 
 class PersisterTests: XCTestCase {
-
     func testLoadSerializedSortedJobShouldRunSuccess() {
         let (type1, job1, job1Id) = (UUID().uuidString, TestJob(), UUID().uuidString)
         let (type2, job2, job2Id) = (UUID().uuidString, TestJob(), UUID().uuidString)
@@ -36,16 +35,16 @@ class PersisterTests: XCTestCase {
         let creator = TestCreator([type1: job1, type2: job2])
 
         let task1 = JobBuilder(type: type1)
-                .singleInstance(forId: job1Id)
-                .parallel(queueName: queueId)
-                .build(job: job1)
-                .toJSONStringSafe()
+            .singleInstance(forId: job1Id)
+            .parallel(queueName: queueId)
+            .build(job: job1)
+            .toJSONStringSafe()
 
         let task2 = JobBuilder(type: type2)
-                .singleInstance(forId: job2Id)
-                .parallel(queueName: queueId)
-                .build(job: job2)
-                .toJSONStringSafe()
+            .singleInstance(forId: job2Id)
+            .parallel(queueName: queueId)
+            .build(job: job2)
+            .toJSONStringSafe()
 
         // Should invert when deserialize
         let persister = PersisterTracker(key: UUID().uuidString)
@@ -87,18 +86,18 @@ class PersisterTests: XCTestCase {
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
 
         JobBuilder(type: type1)
-                .singleInstance(forId: job1Id)
-                .parallel(queueName: group)
-                .delay(time: 3600)
-                .persist()
-                .schedule(manager: manager)
+            .singleInstance(forId: job1Id)
+            .parallel(queueName: group)
+            .delay(time: 3600)
+            .persist()
+            .schedule(manager: manager)
 
         JobBuilder(type: type2)
-                .singleInstance(forId: job2Id)
-                .parallel(queueName: group)
-                .delay(time: 3600)
-                .persist()
-                .schedule(manager: manager)
+            .singleInstance(forId: job2Id)
+            .parallel(queueName: group)
+            .delay(time: 3600)
+            .persist()
+            .schedule(manager: manager)
 
         manager.cancelAllOperations()
 
@@ -123,10 +122,10 @@ class PersisterTests: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
         JobBuilder(type: type)
-                .singleInstance(forId: taskID)
-                .parallel(queueName: queueId)
-                .persist()
-                .schedule(manager: manager)
+            .singleInstance(forId: taskID)
+            .parallel(queueName: queueId)
+            .persist()
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
@@ -149,10 +148,10 @@ class PersisterTests: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
         JobBuilder(type: type)
-                .singleInstance(forId: taskID)
-                .parallel(queueName: queueId)
-                .persist()
-                .schedule(manager: manager)
+            .singleInstance(forId: taskID)
+            .parallel(queueName: queueId)
+            .persist()
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRunCount(expected: 1)
@@ -173,7 +172,7 @@ class PersisterTests: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
         JobBuilder(type: type)
-                .schedule(manager: manager)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
 
@@ -200,12 +199,12 @@ class PersisterTests: XCTestCase {
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
 
         JobBuilder(type: type)
-                .singleInstance(forId: id)
-                .parallel(queueName: group)
-                .delay(time: 3600)
-                .addTag(tag: tag)
-                .persist()
-                .schedule(manager: manager)
+            .singleInstance(forId: id)
+            .parallel(queueName: group)
+            .delay(time: 3600)
+            .addTag(tag: tag)
+            .persist()
+            .schedule(manager: manager)
 
         manager.cancelOperations(tag: tag)
 
@@ -223,25 +222,25 @@ class PersisterTests: XCTestCase {
         let serializer = MemorySerializer()
 
         let manager = SwiftQueueManagerBuilder(creator: TestCreator([type1: job1]))
-                .set(persister: persister)
-                .set(serializer: serializer)
-                .set(isSuspended: true)
-                .build()
+            .set(persister: persister)
+            .set(serializer: serializer)
+            .set(isSuspended: true)
+            .build()
 
         JobBuilder(type: type1)
-                .parallel(queueName: UUID().uuidString)
-                .persist()
-                .schedule(manager: manager)
+            .parallel(queueName: UUID().uuidString)
+            .persist()
+            .schedule(manager: manager)
 
         // at this point the job should have been serialised
         job1.assertNoRun()
 
         // Re-create manager
         let manager2 = SwiftQueueManagerBuilder(creator: TestCreator([type1: job1]))
-                .set(persister: persister)
-                .set(serializer: serializer)
-                .set(isSuspended: false)
-                .build()
+            .set(persister: persister)
+            .set(serializer: serializer)
+            .set(isSuspended: false)
+            .build()
 
         manager2.waitUntilAllOperationsAreFinished()
 
@@ -255,5 +254,4 @@ class PersisterTests: XCTestCase {
         // Nothing to assert since we don't rely on the actual one in test cases
         persister.clearAll()
     }
-
 }

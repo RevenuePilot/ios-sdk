@@ -23,32 +23,32 @@
 import Foundation
 
 final class SqOperation: Operation, @unchecked Sendable {
-
     let info: JobInfo
     let logger: SwiftQueueLogger
     let dispatchQueue: DispatchQueue
 
     var nextRunSchedule: Date?
 
-    internal let handler: Job
-    internal var lastError: Error?
+    let handler: Job
+    var lastError: Error?
 
     private let constraints: [JobConstraint]
     private let listener: JobListener?
 
     /// Current number of repetition. Transient value
-    internal var currentRepetition: Int = 0
+    var currentRepetition: Int = 0
 
     override var name: String? {
         get {
             let constraint: UniqueUUIDConstraint? = getConstraint(info)
             return constraint?.uuid
-        } set { }
+        } set {}
     }
-    override var queuePriority: QueuePriority { get { info.priority } set { } }
+
+    override var queuePriority: QueuePriority { get { info.priority } set {} }
 
     @available(iOS 8.0, macCatalyst 13.0, *)
-    override var qualityOfService: QualityOfService { get { info.qualityOfService } set { } }
+    override var qualityOfService: QualityOfService { get { info.qualityOfService } set {} }
 
     private var jobIsExecuting: Bool = false
     override var isExecuting: Bool {
@@ -70,14 +70,14 @@ final class SqOperation: Operation, @unchecked Sendable {
         }
     }
 
-    internal init(_ job: Job,
-                  _ info: JobInfo,
-                  _ logger: SwiftQueueLogger,
-                  _ listener: JobListener?,
-                  _ dispatchQueue: DispatchQueue,
-                  _ constraints: [JobConstraint]
-    ) {
-        self.handler = job
+    init(_ job: Job,
+         _ info: JobInfo,
+         _ logger: SwiftQueueLogger,
+         _ listener: JobListener?,
+         _ dispatchQueue: DispatchQueue,
+         _ constraints: [JobConstraint])
+    {
+        handler = job
         self.info = info
         self.logger = logger
         self.listener = listener
@@ -95,7 +95,7 @@ final class SqOperation: Operation, @unchecked Sendable {
     }
 
     override func cancel() {
-        self.cancel(with: SwiftQueueError.canceled)
+        cancel(with: SwiftQueueError.canceled)
     }
 
     func cancel(with: Error) {
@@ -113,7 +113,7 @@ final class SqOperation: Operation, @unchecked Sendable {
     }
 
     // cancel before schedule and serialize
-    internal func abort(error: Error) {
+    func abort(error: Error) {
         logger.log(.verbose, jobId: name, message: "Job has not been scheduled due to \(error.localizedDescription)")
         lastError = error
         // Need to be called manually since the task is actually not in the queue. So cannot call cancel()
@@ -122,7 +122,7 @@ final class SqOperation: Operation, @unchecked Sendable {
     }
 
     func run() {
-        if isCancelled && !isFinished {
+        if isCancelled, !isFinished {
             isFinished = true
         }
         if isFinished {
@@ -130,15 +130,15 @@ final class SqOperation: Operation, @unchecked Sendable {
         }
 
         do {
-            try self.willRunJob()
-        } catch let error {
+            try willRunJob()
+        } catch {
             logger.log(.warning, jobId: name, message: "Job cannot run due to \(error.localizedDescription)")
             // Will never run again
             cancel(with: error)
             return
         }
 
-        guard self.checkIfJobCanRunNow() else {
+        guard checkIfJobCanRunNow() else {
             // Constraint fail.
             // Constraint will call run when it's ready
             logger.log(.verbose, jobId: name, message: "Job cannot run now. Execution is postponed")
@@ -150,17 +150,15 @@ final class SqOperation: Operation, @unchecked Sendable {
         handler.onRun(callback: self)
     }
 
-    internal func remove() {
+    func remove() {
         let result = lastError.map(JobCompletion.fail) ?? JobCompletion.success
         logger.log(.verbose, jobId: name, message: "Job is removed from the queue result=\(result)")
         handler.onRemove(result: result)
         listener?.onTerminated(job: info, result: result)
     }
-
 }
 
 extension SqOperation: JobResult {
-
     func done(_ result: JobCompletion) {
         guard !isFinished else { return }
 
@@ -169,7 +167,7 @@ extension SqOperation: JobResult {
         switch result {
         case .success:
             completionSuccess()
-        case .fail(let error):
+        case let .fail(error):
             completionFail(error: error)
         }
     }
@@ -196,11 +194,9 @@ extension SqOperation: JobResult {
             onTerminate()
         }
     }
-
 }
 
 extension SqOperation {
-
     func willScheduleJob(queue: SqOperationQueue) throws {
         for constraint in info.constraints {
             try constraint.willSchedule(queue: queue, operation: self)
@@ -219,5 +215,4 @@ extension SqOperation {
         }
         return true
     }
-
 }

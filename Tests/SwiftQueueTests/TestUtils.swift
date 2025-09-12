@@ -20,13 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import Foundation
-import XCTest
 import Dispatch
+import Foundation
 @testable import RevenuePilot
+import XCTest
 
 class TestJob: Job {
-
     private let onRunCallback: (JobResult) -> Void
     private var withRetry: RetryConstraint
 
@@ -43,7 +42,7 @@ class TestJob: Job {
 
     init(retry: RetryConstraint = .retry(delay: 0), onRunCallback: @escaping (JobResult) -> Void = { $0.done(.success) }) {
         self.onRunCallback = onRunCallback
-        self.withRetry = retry
+        withRetry = retry
     }
 
     func onRun(callback: JobResult) {
@@ -66,7 +65,7 @@ class TestJob: Job {
             onCompletedCount += 1
             onRemoveSemaphore.signal()
 
-        case .fail(let error):
+        case let .fail(error):
             lastError = error
             onCanceledCount += 1
             onRemoveSemaphore.signal()
@@ -81,73 +80,74 @@ class TestJob: Job {
 
     // Assertion
 
-    public func assertRunCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
+    public func assertRunCount(expected: Int, file _: StaticString = #file, line _: UInt = #line) {
         XCTAssertEqual(expected, onRunCount)
     }
-    public func assertCompletedCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
+
+    public func assertCompletedCount(expected: Int, file _: StaticString = #file, line _: UInt = #line) {
         XCTAssertEqual(expected, onCompletedCount)
     }
-    public func assertRetriedCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
+
+    public func assertRetriedCount(expected: Int, file _: StaticString = #file, line _: UInt = #line) {
         XCTAssertEqual(expected, onRetryCount)
     }
-    public func assertCanceledCount(expected: Int, file: StaticString = #file, line: UInt = #line) {
+
+    public func assertCanceledCount(expected: Int, file _: StaticString = #file, line _: UInt = #line) {
         XCTAssertEqual(expected, onCanceledCount)
     }
-    public func assertError(file: StaticString = #file, line: UInt = #line) {
+
+    public func assertError(file _: StaticString = #file, line _: UInt = #line) {
         XCTAssertTrue(lastError is JobError)
     }
-    public func assertError(queueError: SwiftQueueError, file: StaticString = #file, line: UInt = #line) {
+
+    public func assertError(queueError: SwiftQueueError, file _: StaticString = #file, line _: UInt = #line) {
         XCTAssertTrue(lastError is SwiftQueueError)
         guard let base: SwiftQueueError = lastError as? SwiftQueueError else { return }
         switch (base, queueError) {
-
         case let (.onRetryCancel(lErr), .onRetryCancel(rErr)):
             XCTAssertEqual(lErr as? JobError, rErr as? JobError)
-
         case (.duplicate, .duplicate): return
         case (.deadline, .deadline): return
         case (.canceled, .canceled): return
         case (.timeout, .timeout): return
-
         default: XCTFail("Type mismatch")
         }
     }
 
-    public func assertNoError(file: StaticString = #file, line: UInt = #line) {
+    public func assertNoError(file _: StaticString = #file, line _: UInt = #line) {
         XCTAssertNil(lastError)
     }
+
     public func assertNoRun(file: StaticString = #file, line: UInt = #line) {
-        self.assertRunCount(expected: 0)
-        self.assertCompletedCount(expected: 0)
-        self.assertRetriedCount(expected: 0)
-        self.assertCanceledCount(expected: 0)
-        self.assertNoError(file: file, line: line)
+        assertRunCount(expected: 0)
+        assertCompletedCount(expected: 0)
+        assertRetriedCount(expected: 0)
+        assertCanceledCount(expected: 0)
+        assertNoError(file: file, line: line)
     }
+
     // Job has run once without error and completed
     public func assertSingleCompletion(file: StaticString = #file, line: UInt = #line) {
-        self.assertRunCount(expected: 1)
-        self.assertCompletedCount(expected: 1)
-        self.assertRetriedCount(expected: 0)
-        self.assertCanceledCount(expected: 0)
-        self.assertNoError(file: file, line: line)
+        assertRunCount(expected: 1)
+        assertCompletedCount(expected: 1)
+        assertRetriedCount(expected: 0)
+        assertCanceledCount(expected: 0)
+        assertNoError(file: file, line: line)
     }
 
-    public func assertRemovedBeforeRun(reason: SwiftQueueError, file: StaticString = #file, line: UInt = #line) {
-        self.assertRunCount(expected: 0)
-        self.assertCompletedCount(expected: 0)
-        self.assertRetriedCount(expected: 0)
-        self.assertCanceledCount(expected: 1)
-        self.assertError(queueError: reason)
+    public func assertRemovedBeforeRun(reason: SwiftQueueError, file _: StaticString = #file, line _: UInt = #line) {
+        assertRunCount(expected: 0)
+        assertCompletedCount(expected: 0)
+        assertRetriedCount(expected: 0)
+        assertCanceledCount(expected: 1)
+        assertError(queueError: reason)
     }
-
 }
 
 class TestJobFail: TestJob {
-
     required init(retry: RetryConstraint = .retry(delay: 0), error: Error = JobError()) {
-        super.init(retry: retry) { $0.done(.fail(error))}
+        super.init(retry: retry) { $0.done(.fail(error)) }
     }
-
 }
 
 class TestCreator: JobCreator {
@@ -157,7 +157,7 @@ class TestCreator: JobCreator {
         self.job = job
     }
 
-    func create(type: String, params: [String: Any]?) -> Job {
+    func create(type: String, params _: [String: Any]?) -> Job {
         return job[type]!
     }
 }
@@ -165,12 +165,12 @@ class TestCreator: JobCreator {
 class PersisterTracker: UserDefaultsPersister {
     var restoreQueueName = ""
 
-    var putQueueName: [String] = [String]()
-    var putJobUUID: [String] = [String]()
-    var putData: [String] = [String]()
+    var putQueueName: [String] = .init()
+    var putJobUUID: [String] = .init()
+    var putData: [String] = .init()
 
-    var removeQueueName: [String] = [String]()
-    var removeJobUUID: [String] = [String]()
+    var removeQueueName: [String] = .init()
+    var removeJobUUID: [String] = .init()
 
     override func restore(queueName: String) -> [String] {
         restoreQueueName = queueName
@@ -192,11 +192,10 @@ class PersisterTracker: UserDefaultsPersister {
 }
 
 class JobListenerTest: JobListener {
-
-    var onJobScheduled: [JobInfo] = [JobInfo]()
-    var onBeforeRun: [JobInfo] = [JobInfo]()
-    var onAfterRun: [(JobInfo, JobCompletion)] = [(JobInfo, JobCompletion)]()
-    var onTerminated: [(JobInfo, JobCompletion)] = [(JobInfo, JobCompletion)]()
+    var onJobScheduled: [JobInfo] = .init()
+    var onBeforeRun: [JobInfo] = .init()
+    var onAfterRun: [(JobInfo, JobCompletion)] = .init()
+    var onTerminated: [(JobInfo, JobCompletion)] = .init()
 
     func onJobScheduled(job: JobInfo) {
         onJobScheduled.append(job)
@@ -216,46 +215,38 @@ class JobListenerTest: JobListener {
 }
 
 class JobError: Error, @unchecked Sendable {
-
     let id = UUID().uuidString
-
 }
 
 extension JobError: Equatable {
-
     public static func == (lhs: JobError, rhs: JobError) -> Bool {
         return lhs.id == rhs.id
     }
 }
 
 extension SqOperation {
-
     func toJSONStringSafe() -> String {
-        (try? DecodableSerializer(maker: DefaultConstraintMaker()).serialize(info: self.info)) ?? "{}"
+        (try? DecodableSerializer(maker: DefaultConstraintMaker()).serialize(info: info)) ?? "{}"
     }
-
 }
 
 class NoPersister: JobPersister {
-
-    nonisolated(unsafe) public static let shared = NoPersister()
+    public nonisolated(unsafe) static let shared = NoPersister()
 
     private init() {}
 
     func restore() -> [String] { return [] }
 
-    func restore(queueName: String) -> [String] { return [] }
+    func restore(queueName _: String) -> [String] { return [] }
 
-    func put(queueName: String, taskId: String, data: String) {}
+    func put(queueName _: String, taskId _: String, data _: String) {}
 
-    func remove(queueName: String, taskId: String) {}
+    func remove(queueName _: String, taskId _: String) {}
 
     func clearAll() {}
-
 }
 
 class MemorySerializer: JobInfoSerializer {
-
     private var data: [String: JobInfo] = [:]
 
     func serialize(info: JobInfo) throws -> String {
@@ -272,11 +263,9 @@ class MemorySerializer: JobInfoSerializer {
 }
 
 extension JobBuilder {
-
-    internal func build(job: Job, logger: SwiftQueueLogger = NoLogger.shared, listener: JobListener? = nil) -> SqOperation {
+    func build(job: Job, logger: SwiftQueueLogger = NoLogger.shared, listener: JobListener? = nil) -> SqOperation {
         let info = build()
         let constraints = info.constraints
         return SqOperation(job, info, logger, listener, DispatchQueue.global(qos: DispatchQoS.QoSClass.utility), constraints)
     }
-
 }

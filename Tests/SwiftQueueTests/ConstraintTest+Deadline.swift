@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestDeadline: XCTestCase {
-
     func testDeadlineWhenSchedule() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -33,8 +32,8 @@ class ConstraintTestDeadline: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .deadline(date: Date(timeIntervalSinceNow: TimeInterval(-10)))
-                .schedule(manager: manager)
+            .deadline(date: Date(timeIntervalSinceNow: TimeInterval(-10)))
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertRemovedBeforeRun(reason: .deadline)
@@ -48,14 +47,14 @@ class ConstraintTestDeadline: XCTestCase {
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
 
         JobBuilder(type: type1)
-                .delay(time: Double.leastNonzeroMagnitude)
-                .retry(limit: .limited(5))
-                .schedule(manager: manager)
+            .delay(time: Double.leastNonzeroMagnitude)
+            .retry(limit: .limited(5))
+            .schedule(manager: manager)
 
         JobBuilder(type: type2)
-                .deadline(date: Date()) // After 1 second should fail
-                .retry(limit: .unlimited)
-                .schedule(manager: manager)
+            .deadline(date: Date()) // After 1 second should fail
+            .retry(limit: .unlimited)
+            .schedule(manager: manager)
 
         manager.waitUntilAllOperationsAreFinished()
 
@@ -74,10 +73,10 @@ class ConstraintTestDeadline: XCTestCase {
         let group = UUID().uuidString
 
         let json = JobBuilder(type: type)
-                .parallel(queueName: group)
-                .deadline(date: Date())
-                .build(job: job)
-                .toJSONStringSafe()
+            .parallel(queueName: group)
+            .deadline(date: Date())
+            .build(job: job)
+            .toJSONStringSafe()
 
         let persister = PersisterTracker(key: UUID().uuidString)
         persister.put(queueName: group, taskId: UUID().uuidString, data: json)
@@ -99,15 +98,14 @@ class ConstraintTestDeadline: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .delay(time: 60)
-                .deadline(date: Date(timeIntervalSinceNow: Double.leastNonzeroMagnitude))
-                .retry(limit: .unlimited)
-                .schedule(manager: manager)
+            .delay(time: 60)
+            .deadline(date: Date(timeIntervalSinceNow: Double.leastNonzeroMagnitude))
+            .retry(limit: .unlimited)
+            .schedule(manager: manager)
 
         manager.waitUntilAllOperationsAreFinished()
 
         job.awaitForRemoval()
         job.assertRemovedBeforeRun(reason: .deadline)
     }
-
 }

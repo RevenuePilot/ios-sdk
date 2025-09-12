@@ -22,10 +22,9 @@
 
 import Foundation
 
-internal final class JobRetryConstraint: SimpleConstraint, CodableConstraint {
-
+final class JobRetryConstraint: SimpleConstraint, CodableConstraint {
     /// Maximum number of authorised retried
-    internal var limit: Limit
+    var limit: Limit
 
     required init(limit: Limit) {
         self.limit = limit
@@ -40,7 +39,7 @@ internal final class JobRetryConstraint: SimpleConstraint, CodableConstraint {
 
     func onCompletionFail(sqOperation: SqOperation, error: Error) {
         switch limit {
-        case .limited(let value):
+        case let .limited(value):
             if value > 0 {
                 sqOperation.retryJob(actual: self, retry: sqOperation.handler.onRetry(error: error), origin: error)
             } else {
@@ -61,10 +60,8 @@ internal final class JobRetryConstraint: SimpleConstraint, CodableConstraint {
     }
 }
 
-fileprivate extension SqOperation {
-
+private extension SqOperation {
     func retryJob(actual: JobRetryConstraint, retry: RetryConstraint, origin: Error) {
-
         func exponentialBackoff(initial: TimeInterval) -> TimeInterval {
             currentRepetition += 1
             return currentRepetition == 1 ? initial : initial * pow(2, Double(currentRepetition - 1))
@@ -82,23 +79,22 @@ fileprivate extension SqOperation {
         case .cancel:
             lastError = SwiftQueueError.onRetryCancel(origin)
             onTerminate()
-        case .retry(let after):
+        case let .retry(after):
             guard after > 0 else {
                 // Retry immediately
                 actual.limit.decreaseValue(by: 1)
-                self.run()
+                run()
                 return
             }
 
             // Retry after time in parameter
             retryInBackgroundAfter(after)
-        case .exponential(let initial):
+        case let .exponential(initial):
             retryInBackgroundAfter(exponentialBackoff(initial: initial))
-        case .exponentialWithLimit(let initial, let maxDelay):
+        case let .exponentialWithLimit(initial, maxDelay):
             retryInBackgroundAfter(min(maxDelay, exponentialBackoff(initial: initial)))
         }
     }
-
 }
 
 /// Behaviour for retrying the job

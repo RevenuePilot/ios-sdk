@@ -23,7 +23,6 @@
 import Foundation
 
 final class SqOperationQueue: OperationQueue, @unchecked Sendable {
-
     private let creator: JobCreator
     private let queue: Queue
 
@@ -37,27 +36,27 @@ final class SqOperationQueue: OperationQueue, @unchecked Sendable {
 
     init(_ params: SqManagerParams, _ queue: Queue, _ isSuspended: Bool) {
         self.queue = queue
-        self.creator = params.jobCreator
-        self.dispatchQueue = params.dispatchQueue
+        creator = params.jobCreator
+        dispatchQueue = params.dispatchQueue
 
-        self.persister = params.persister
-        self.serializer = params.serializer
-        self.logger = params.logger
-        self.listener = params.listener
+        persister = params.persister
+        serializer = params.serializer
+        logger = params.logger
+        listener = params.listener
 
         super.init()
 
         self.isSuspended = isSuspended
 
-        self.name = queue.name
-        self.maxConcurrentOperationCount = queue.maxConcurrent
+        name = queue.name
+        maxConcurrentOperationCount = queue.maxConcurrent
 
         if params.initInBackground {
             params.dispatchQueue.async { [weak self] in
                 self?.loadSerializedTasks(name: queue.name)
             }
         } else {
-            self.loadSerializedTasks(name: queue.name)
+            loadSerializedTasks(name: queue.name)
         }
     }
 
@@ -69,7 +68,7 @@ final class SqOperationQueue: OperationQueue, @unchecked Sendable {
                 info.constraints.append(PersisterConstraint(serializer: serializer, persister: persister))
 
                 return SqOperation(job, info, logger, listener, dispatchQueue, info.constraints)
-            } catch let error {
+            } catch {
                 logger.log(.error, jobId: "UNKNOWN", message: "Unable to deserialize job error=\(error.localizedDescription)")
                 return nil
             }
@@ -82,7 +81,7 @@ final class SqOperationQueue: OperationQueue, @unchecked Sendable {
     }
 
     override func addOperation(_ ope: Operation) {
-        self.addOperationInternal(ope, wait: true)
+        addOperationInternal(ope, wait: true)
     }
 
     private func addOperationInternal(_ ope: Operation, wait: Bool) {
@@ -104,7 +103,7 @@ final class SqOperationQueue: OperationQueue, @unchecked Sendable {
 
         do {
             try job.willScheduleJob(queue: self)
-        } catch let error {
+        } catch {
             job.abort(error: error)
             return
         }
@@ -148,7 +147,6 @@ final class SqOperationQueue: OperationQueue, @unchecked Sendable {
     func createHandler(type: String, params: [String: Any]?) -> Job {
         return creator.create(type: type, params: params)
     }
-
 }
 
-internal class TriggerOperation: Operation, @unchecked Sendable {}
+class TriggerOperation: Operation, @unchecked Sendable {}

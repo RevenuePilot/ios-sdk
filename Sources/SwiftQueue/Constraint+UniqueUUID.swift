@@ -22,14 +22,13 @@
 
 import Foundation
 
-internal final class UniqueUUIDConstraint: SimpleConstraint, CodableConstraint {
-
+final class UniqueUUIDConstraint: SimpleConstraint, CodableConstraint {
     /// Unique identifier for a job
-    internal let uuid: String
+    let uuid: String
 
     /// Override job when scheduling a job with same uuid
     /// True = Override, False = Abort job with duplicate failure
-    internal let override: Bool
+    let override: Bool
 
     /// Including job that are executing when scheduling with same uuid
     private let includeExecutingJob: Bool
@@ -44,9 +43,9 @@ internal final class UniqueUUIDConstraint: SimpleConstraint, CodableConstraint {
         let container = try decoder.container(keyedBy: UUIDConstraintKey.self)
         if container.contains(.uuid) && container.contains(.override) && container.contains(.includeExecutingJob) {
             try self.init(
-                    uuid: container.decode(String.self, forKey: .uuid),
-                    override: container.decode(Bool.self, forKey: .override),
-                    includeExecutingJob: container.decode(Bool.self, forKey: .includeExecutingJob)
+                uuid: container.decode(String.self, forKey: .uuid),
+                override: container.decode(Bool.self, forKey: .override),
+                includeExecutingJob: container.decode(Bool.self, forKey: .includeExecutingJob)
             )
         } else { return nil }
     }
@@ -64,7 +63,7 @@ internal final class UniqueUUIDConstraint: SimpleConstraint, CodableConstraint {
         }
     }
 
-    private func shouldAbort(ope: Operation, operation: SqOperation) -> Bool {
+    private func shouldAbort(ope: Operation, operation _: SqOperation) -> Bool {
         return (ope.isExecuting && includeExecutingJob) || !ope.isExecuting
     }
 
@@ -80,5 +79,4 @@ internal final class UniqueUUIDConstraint: SimpleConstraint, CodableConstraint {
         try container.encode(override, forKey: .override)
         try container.encode(includeExecutingJob, forKey: .includeExecutingJob)
     }
-
 }

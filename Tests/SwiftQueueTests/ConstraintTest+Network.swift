@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestNetwork: XCTestCase {
-
     func testNetworkConstraint() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -33,8 +32,8 @@ class ConstraintTestNetwork: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .internet(atLeast: .cellular)
-                .schedule(manager: manager)
+            .internet(atLeast: .cellular)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
@@ -47,8 +46,8 @@ class ConstraintTestNetwork: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .internet(atLeast: .wifi)
-                .schedule(manager: manager)
+            .internet(atLeast: .wifi)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
@@ -62,8 +61,8 @@ class ConstraintTestNetwork: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .add(constraint: NetworkConstraint(networkType: .wifi, monitor: TestNetworkMonitor(semaphore: semaphore)))
-                .schedule(manager: manager)
+            .add(constraint: NetworkConstraint(networkType: .wifi, monitor: TestNetworkMonitor(semaphore: semaphore)))
+            .schedule(manager: manager)
 
         job.assertNoRun()
 
@@ -72,11 +71,9 @@ class ConstraintTestNetwork: XCTestCase {
         job.awaitForRemoval()
         job.assertSingleCompletion()
     }
-
 }
 
-internal class TestNetworkMonitor: NetworkMonitor {
-
+class TestNetworkMonitor: NetworkMonitor {
     private let semaphore: DispatchSemaphore
 
     private var hasNetworkChanged = false
@@ -85,11 +82,11 @@ internal class TestNetworkMonitor: NetworkMonitor {
         self.semaphore = semaphore
     }
 
-    func hasCorrectNetworkType(require: NetworkType) -> Bool {
+    func hasCorrectNetworkType(require _: NetworkType) -> Bool {
         hasNetworkChanged
     }
 
-    func startMonitoring(networkType: NetworkType, operation: SqOperation) {
+    func startMonitoring(networkType _: NetworkType, operation: SqOperation) {
         operation.dispatchQueue.async { [weak self] in
             self?.semaphore.wait()
             self?.hasNetworkChanged = true

@@ -20,12 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import XCTest
 import Dispatch
 @testable import RevenuePilot
+import XCTest
 
 class SwiftQueueManagerTests: XCTestCase {
-
     func testRunSuccessJob() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -33,9 +32,9 @@ class SwiftQueueManagerTests: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .priority(priority: .veryHigh)
-                .service(quality: .background)
-                .schedule(manager: manager)
+            .priority(priority: .veryHigh)
+            .service(quality: .background)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertSingleCompletion()
@@ -54,9 +53,9 @@ class SwiftQueueManagerTests: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).set(isSuspended: true).build()
         JobBuilder(type: type)
-                .priority(priority: .veryHigh)
-                .service(quality: .background)
-                .schedule(manager: manager)
+            .priority(priority: .veryHigh)
+            .service(quality: .background)
+            .schedule(manager: manager)
 
         XCTAssertEqual(0, onRunCount)
 
@@ -73,10 +72,10 @@ class SwiftQueueManagerTests: XCTestCase {
         let listener = JobListenerTest()
 
         let manager = SwiftQueueManagerBuilder(creator: creator)
-                .set(persister: NoPersister.shared)
-                .set(isSuspended: true)
-                .set(listener: listener)
-                .build()
+            .set(persister: NoPersister.shared)
+            .set(isSuspended: true)
+            .set(listener: listener)
+            .build()
 
         JobBuilder(type: type).schedule(manager: manager)
 
@@ -112,11 +111,11 @@ class SwiftQueueManagerTests: XCTestCase {
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
 
         JobBuilder(type: type)
-                .singleInstance(forId: id)
-                .parallel(queueName: group)
-                .delay(time: 3600)
-                .addTag(tag: tag)
-                .schedule(manager: manager)
+            .singleInstance(forId: id)
+            .parallel(queueName: group)
+            .delay(time: 3600)
+            .addTag(tag: tag)
+            .schedule(manager: manager)
 
         manager.cancelOperations(tag: tag)
 
@@ -144,10 +143,10 @@ class SwiftQueueManagerTests: XCTestCase {
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
 
         JobBuilder(type: type)
-                .singleInstance(forId: id)
-                .parallel(queueName: group)
-                .delay(time: 3600)
-                .schedule(manager: manager)
+            .singleInstance(forId: id)
+            .parallel(queueName: group)
+            .delay(time: 3600)
+            .schedule(manager: manager)
 
         manager.cancelOperations(uuid: id)
 
@@ -176,11 +175,11 @@ class SwiftQueueManagerTests: XCTestCase {
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
 
         JobBuilder(type: type)
-                .singleInstance(forId: id)
-                .parallel(queueName: group)
-                .delay(time: 3600)
-                .addTag(tag: tag)
-                .schedule(manager: manager)
+            .singleInstance(forId: id)
+            .parallel(queueName: group)
+            .delay(time: 3600)
+            .addTag(tag: tag)
+            .schedule(manager: manager)
 
         manager.cancelAllOperations()
 
@@ -204,9 +203,9 @@ class SwiftQueueManagerTests: XCTestCase {
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: persister).build()
 
         JobBuilder(type: type)
-                .singleInstance(forId: UUID().uuidString)
-                .periodic(limit: .unlimited, interval: Double.leastNonzeroMagnitude)
-                .schedule(manager: manager)
+            .singleInstance(forId: UUID().uuidString)
+            .periodic(limit: .unlimited, interval: Double.leastNonzeroMagnitude)
+            .schedule(manager: manager)
 
         manager.cancelAllOperations()
 
@@ -223,13 +222,13 @@ class SwiftQueueManagerTests: XCTestCase {
 
     func testAddOperationNotJobTask() {
         let params = SqManagerParams(
-                jobCreator: TestCreator([:]),
-                queueCreator: BasicQueueCreator(),
-                persister: NoPersister.shared,
-                serializer: DecodableSerializer(maker: DefaultConstraintMaker()),
-                logger: NoLogger.shared,
-                listener: nil,
-                initInBackground: false
+            jobCreator: TestCreator([:]),
+            queueCreator: BasicQueueCreator(),
+            persister: NoPersister.shared,
+            serializer: DecodableSerializer(maker: DefaultConstraintMaker()),
+            logger: NoLogger.shared,
+            listener: nil,
+            initInBackground: false
         )
         let queue = SqOperationQueue(params, BasicQueue.synchronous, true)
         let operation = Operation()
@@ -255,7 +254,7 @@ class SwiftQueueManagerTests: XCTestCase {
         let persister = PersisterTracker(key: UUID().uuidString)
         let manager = SwiftQueueManagerBuilder(creator: creator).set(isSuspended: true).set(persister: persister).build()
 
-        for _ in 0..<100 {
+        for _ in 0 ..< 100 {
             JobBuilder(type: type).parallel(queueName: UUID().uuidString).schedule(manager: manager)
         }
 
@@ -285,9 +284,9 @@ class SwiftQueueManagerTests: XCTestCase {
         let creator = TestCreator([type: job])
 
         manager = SwiftQueueManagerBuilder(creator: creator)
-                .set(persister: NoPersister.shared)
-                .set(dispatchQueue: DispatchQueue.main)
-                .build()
+            .set(persister: NoPersister.shared)
+            .set(dispatchQueue: DispatchQueue.main)
+            .build()
 
         manager?.enqueue(info: JobBuilder(type: type).build())
 
@@ -304,23 +303,21 @@ class SwiftQueueManagerTests: XCTestCase {
         let creator = TestCreator([type: job])
         let persister = PersisterTracker(key: UUID().uuidString)
         let manager = SwiftQueueManagerBuilder(creator: creator)
-                .set(isSuspended: true)
-                .set(enqueueDispatcher: .main)
-                .set(persister: persister).build()
+            .set(isSuspended: true)
+            .set(enqueueDispatcher: .main)
+            .set(persister: persister).build()
 
         let concurrentQueue = DispatchQueue(label: "com.test.concurrent", attributes: .concurrent)
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             concurrentQueue.async {
                 JobBuilder(type: type).parallel(queueName: UUID().uuidString).schedule(manager: manager)
             }
         }
 
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             DispatchQueue(label: "com.test.concurrent", attributes: .concurrent).async {
                 JobBuilder(type: type).parallel(queueName: UUID().uuidString).schedule(manager: manager)
             }
         }
-
     }
-
 }

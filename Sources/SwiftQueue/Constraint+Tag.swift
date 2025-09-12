@@ -22,9 +22,8 @@
 
 import Foundation
 
-internal final class TagConstraint: SimpleConstraint, CodableConstraint {
-
-    internal var tags: Set<String>
+final class TagConstraint: SimpleConstraint, CodableConstraint {
+    var tags: Set<String>
 
     required init(tags: Set<String>) {
         self.tags = tags

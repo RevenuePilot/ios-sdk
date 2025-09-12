@@ -22,90 +22,87 @@
 
 #if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
 
-import BackgroundTasks
+    import BackgroundTasks
 
-@available(iOS 13.0, tvOS 13.0, macCatalyst 13.1, *)
-/// Extension of SwiftQueueManager to support BackgroundTask API from iOS 13.
-extension SwiftQueueManager {
-
-    /// Register task that can potentially run in Background (Using BackgroundTask API)
-    /// Registration of all launch handlers must be complete before the end of applicationDidFinishLaunching(_:)
-    /// https://developer.apple.com/documentation/backgroundtasks/bgtaskscheduler/3180427-register
-    func registerForBackgroundTask(forTaskWithUUID: String) {
-        BGTaskScheduler.shared.register(forTaskWithIdentifier: forTaskWithUUID, using: nil) { [weak self] task in
-            if let operation = self?.getOperation(forUUID: task.identifier) {
-                task.expirationHandler = {
-                    operation.done(.fail(SwiftQueueError.timeout))
+    /// Extension of SwiftQueueManager to support BackgroundTask API from iOS 13.
+    @available(iOS 13.0, tvOS 13.0, macCatalyst 13.1, *)
+    extension SwiftQueueManager {
+        /// Register task that can potentially run in Background (Using BackgroundTask API)
+        /// Registration of all launch handlers must be complete before the end of applicationDidFinishLaunching(_:)
+        /// https://developer.apple.com/documentation/backgroundtasks/bgtaskscheduler/3180427-register
+        func registerForBackgroundTask(forTaskWithUUID: String) {
+            BGTaskScheduler.shared.register(forTaskWithIdentifier: forTaskWithUUID, using: nil) { [weak self] task in
+                if let operation = self?.getOperation(forUUID: task.identifier) {
+                    task.expirationHandler = {
+                        operation.done(.fail(SwiftQueueError.timeout))
+                    }
+                    operation.handler.onRun(callback: TaskJobResult(actual: operation, task: task))
                 }
-                operation.handler.onRun(callback: TaskJobResult(actual: operation, task: task))
+            }
+        }
+
+        /// Call this method when application is entering background to schedule jobs as background task
+        func applicationDidEnterBackground() {
+            for operation in getAllAllowBackgroundOperation() {
+                operation.scheduleBackgroundTask()
+            }
+        }
+
+        /// Cancel all possible background Task
+        func cancelAllBackgroundTask() {
+            for operation in getAllAllowBackgroundOperation() {
+                if let uuid = operation.name {
+                    BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: uuid)
+                }
             }
         }
     }
 
-    /// Call this method when application is entering background to schedule jobs as background task
-    func applicationDidEnterBackground() {
-        for operation in getAllAllowBackgroundOperation() {
-            operation.scheduleBackgroundTask()
-        }
-    }
+    @available(iOS 13.0, tvOS 13.0, macCatalyst 13.1, *)
+    extension SqOperation {
+        func scheduleBackgroundTask() {
+            guard let name = name else { return }
 
-    /// Cancel all possible background Task
-    func cancelAllBackgroundTask() {
-        for operation in getAllAllowBackgroundOperation() {
-            if let uuid = operation.name {
-                BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: uuid)
+            let request = BGProcessingTaskRequest(identifier: name)
+
+            if let _: NetworkConstraint = getConstraint(info) {
+                request.requiresNetworkConnectivity = true
+            }
+
+            if let _: BatteryChargingConstraint = getConstraint(info) {
+                request.requiresExternalPower = true
+            }
+
+            request.earliestBeginDate = nextRunSchedule
+
+            do {
+                try BGTaskScheduler.shared.submit(request)
+            } catch {
+                logger.log(.verbose, jobId: name, message: "Could not schedule BackgroundTask")
             }
         }
     }
-}
 
-@available(iOS 13.0, tvOS 13.0, macCatalyst 13.1, *)
-internal extension SqOperation {
+    @available(iOS 13.0, tvOS 13.0, macCatalyst 13.1, *)
+    private class TaskJobResult: JobResult {
+        private let task: BGTask
+        private let actual: JobResult
 
-    func scheduleBackgroundTask() {
-        guard let name = name else { return }
-
-        let request = BGProcessingTaskRequest(identifier: name)
-
-        if let _: NetworkConstraint = getConstraint(info) {
-            request.requiresNetworkConnectivity = true
+        init(actual: JobResult, task: BGTask) {
+            self.actual = actual
+            self.task = task
         }
 
-        if let _: BatteryChargingConstraint = getConstraint(info) {
-            request.requiresExternalPower = true
-        }
+        func done(_ result: JobCompletion) {
+            actual.done(result)
 
-        request.earliestBeginDate = nextRunSchedule
-
-        do {
-            try BGTaskScheduler.shared.submit(request)
-        } catch {
-            logger.log(.verbose, jobId: name, message: "Could not schedule BackgroundTask")
+            switch result {
+            case .success:
+                task.setTaskCompleted(success: true)
+            case .fail:
+                task.setTaskCompleted(success: false)
+            }
         }
     }
-}
-
-@available(iOS 13.0, tvOS 13.0, macCatalyst 13.1, *)
-private class TaskJobResult: JobResult {
-
-    private let task: BGTask
-    private let actual: JobResult
-
-    init(actual: JobResult, task: BGTask) {
-        self.actual = actual
-        self.task = task
-    }
-
-    func done(_ result: JobCompletion) {
-        actual.done(result)
-
-        switch result {
-        case .success:
-            task.setTaskCompleted(success: true)
-        case .fail:
-            task.setTaskCompleted(success: false)
-        }
-    }
-}
 
 #endif

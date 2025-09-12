@@ -25,7 +25,6 @@ import Foundation
 /// Info related to a single job. Those information may be serialized and persisted
 /// In order to re-create the job in the future.
 struct JobInfo {
-
     /// Type of job to create actual `Job` instance
     let type: String
 
@@ -44,7 +43,7 @@ struct JobInfo {
     /// Date of the job's creation
     let createTime: Date
 
-    internal var constraints: [JobConstraint]
+    var constraints: [JobConstraint]
 
     mutating func setupConstraints(_ maker: ConstraintMaker, from decoder: Decoder) throws {
         constraints = try maker.make(from: decoder)
@@ -52,13 +51,13 @@ struct JobInfo {
 
     init(type: String) {
         self.init(
-                type: type,
-                queueName: "GLOBAL",
-                createTime: Date(),
-                priority: .normal,
-                qualityOfService: .utility,
-                params: [:],
-                constraints: []
+            type: type,
+            queueName: "GLOBAL",
+            createTime: Date(),
+            priority: .normal,
+            qualityOfService: .utility,
+            params: [:],
+            constraints: []
         )
     }
 
@@ -68,8 +67,8 @@ struct JobInfo {
          priority: Operation.QueuePriority,
          qualityOfService: QualityOfService,
          params: [String: Any],
-         constraints: [JobConstraint]
-    ) {
+         constraints: [JobConstraint])
+    {
         self.type = type
         self.queueName = queueName
         self.createTime = createTime
@@ -81,8 +80,7 @@ struct JobInfo {
 }
 
 extension JobInfo: Codable {
-
-    internal enum JobInfoKeys: String, CodingKey {
+    enum JobInfoKeys: String, CodingKey {
         case type
         case queueName
         case params
@@ -104,13 +102,13 @@ extension JobInfo: Codable {
         let constraintMaker = decoder.userInfo[.constraintMaker] as? ConstraintMaker ?? DefaultConstraintMaker()
 
         try self.init(
-                type: type,
-                queueName: queueName,
-                createTime: createTime,
-                priority: Operation.QueuePriority(fromValue: priority),
-                qualityOfService: QualityOfService(fromValue: qualityOfService),
-                params: params,
-                constraints: constraintMaker.make(from: decoder)
+            type: type,
+            queueName: queueName,
+            createTime: createTime,
+            priority: Operation.QueuePriority(fromValue: priority),
+            qualityOfService: QualityOfService(fromValue: qualityOfService),
+            params: params,
+            constraints: constraintMaker.make(from: decoder)
         )
     }
 

@@ -22,10 +22,9 @@
 
 import Foundation
 
-internal final class TimeoutConstraint: SimpleConstraint, CodableConstraint {
-
+final class TimeoutConstraint: SimpleConstraint, CodableConstraint {
     /// Auto cancel job if not completed after this time
-    internal let timeout: TimeInterval
+    let timeout: TimeInterval
 
     required init(timeout: TimeInterval) {
         self.timeout = timeout
@@ -57,5 +56,4 @@ internal final class TimeoutConstraint: SimpleConstraint, CodableConstraint {
         var container = encoder.container(keyedBy: TimeoutConstraintKey.self)
         try container.encode(timeout, forKey: .timeout)
     }
-
 }

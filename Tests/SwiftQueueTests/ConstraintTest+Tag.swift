@@ -21,11 +21,10 @@
 // SOFTWARE.
 
 import Foundation
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class ConstraintTestTag: XCTestCase {
-
     func testCancelRunningOperationByTag() {
         let tag = UUID().uuidString
 
@@ -49,5 +48,4 @@ class ConstraintTestTag: XCTestCase {
         job.assertCanceledCount(expected: 1)
         job.assertError(queueError: .canceled)
     }
-
 }

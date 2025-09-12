@@ -22,11 +22,10 @@
 
 import Foundation
 
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class BasicConstraintTest: XCTestCase {
-
     func testContraintThrowExceptionShouldCancelOperation() {
         let (type, job) = (UUID().uuidString, TestJob())
 
@@ -37,8 +36,8 @@ class BasicConstraintTest: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .add(constraint: constraint)
-                .schedule(manager: manager)
+            .add(constraint: constraint)
+            .schedule(manager: manager)
 
         job.awaitForRemoval()
         job.assertError()
@@ -58,8 +57,8 @@ class BasicConstraintTest: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .add(constraint: constraint)
-                .schedule(manager: manager)
+            .add(constraint: constraint)
+            .schedule(manager: manager)
 
         job.assertNoRun()
 
@@ -87,8 +86,8 @@ class BasicConstraintTest: XCTestCase {
 
         let manager = SwiftQueueManagerBuilder(creator: creator).set(persister: NoPersister.shared).build()
         JobBuilder(type: type)
-                .add(constraint: constraint)
-                .schedule(manager: manager)
+            .add(constraint: constraint)
+            .schedule(manager: manager)
 
         job.assertNoRun()
 
@@ -101,16 +100,14 @@ class BasicConstraintTest: XCTestCase {
         XCTAssertTrue(constraint.willRunCalled)
         XCTAssertTrue(constraint.runCalled)
     }
-
 }
 
 class BasicConstraint: CustomConstraint {
-
-    let onWillSchedule: () throws-> Void
+    let onWillSchedule: () throws -> Void
     let onWillRun: () throws -> Void
     let onRun: (SqOperation) -> Bool
 
-    required init(onWillSchedule: @escaping () throws -> Void = {}, onWillRun: @escaping () throws -> Void = {}, onRun: @escaping (SqOperation) -> Bool = { _ in true}) {
+    required init(onWillSchedule: @escaping () throws -> Void = {}, onWillRun: @escaping () throws -> Void = {}, onRun: @escaping (SqOperation) -> Bool = { _ in true }) {
         self.onWillSchedule = onWillSchedule
         self.onWillRun = onWillRun
         self.onRun = onRun
@@ -129,5 +126,4 @@ class BasicConstraint: CustomConstraint {
     override func run(operation: SqOperation) -> Bool {
         super.run(operation: operation) && onRun(operation)
     }
-
 }

@@ -22,22 +22,21 @@
 
 import Foundation
 
-import XCTest
 @testable import RevenuePilot
+import XCTest
 
 class SqOperationTest: XCTestCase {
-
     func testQueuePriority() {
         let priorities = [
             Operation.QueuePriority.veryLow,
             Operation.QueuePriority.low,
             Operation.QueuePriority.normal,
             Operation.QueuePriority.high,
-            Operation.QueuePriority.veryHigh
+            Operation.QueuePriority.veryHigh,
         ]
 
         for priority in priorities {
-            var jobInfo = JobInfo.init(type: "")
+            var jobInfo = JobInfo(type: "")
             jobInfo.priority = priority
             let operation = SqOperation(TestJob(), jobInfo, NoLogger.shared, nil, .main, [])
 
@@ -51,16 +50,15 @@ class SqOperationTest: XCTestCase {
             QualityOfService.userInitiated,
             QualityOfService.utility,
             QualityOfService.background,
-            QualityOfService.default
+            QualityOfService.default,
         ]
 
         for service in services {
-            var jobInfo = JobInfo.init(type: "")
+            var jobInfo = JobInfo(type: "")
             jobInfo.qualityOfService = service
             let operation = SqOperation(TestJob(), jobInfo, NoLogger.shared, nil, .main, [])
 
             XCTAssertEqual(service, operation.qualityOfService)
         }
     }
-
 }
