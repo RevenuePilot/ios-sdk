@@ -37,7 +37,7 @@ struct Message: Codable {
     let apiVersion: String
     let event: String?
     let properties: [String: RevFlowPrimitive]?
-    let traits: [String: TraitUpdateOperation]?
+    let traits: [String: RevFlowPrimitive]?
     let context: Context
 
     static func track(
@@ -68,7 +68,7 @@ struct Message: Codable {
         anonymousId: String,
         timestamp: Date = Date(),
         apiVersion: String,
-        traits: [String: TraitUpdateOperation]?,
+        traits: [String: Any]?,
         context: Context
     ) -> Self {
         return .init(
@@ -94,7 +94,7 @@ struct Message: Codable {
         apiVersion: String,
         event: String?,
         properties: [String: Any]?,
-        traits: [String: TraitUpdateOperation]?,
+        traits: [String: Any]?,
         context: Context
     ) {
         self.id = id
@@ -111,8 +111,13 @@ struct Message: Codable {
             self.properties = nil
         }
 
+        if let traits, !traits.isEmpty {
+            self.traits = traits.compactMapValues { RevFlowPrimitive(rawValue: $0) }
+        } else {
+            self.traits = nil
+        }
+        
         self.context = context
-        self.traits = traits
     }
 
     enum MessageType: String, Codable {
@@ -166,6 +171,7 @@ struct RevFlowPrimitive: Codable {
     private var doubleValue: Double?
     private var stringValue: String?
     private var boolValue: Bool?
+    private var dateValue: Date?
 
     init?(rawValue: Any) {
         if let stringValue = rawValue as? String {
@@ -176,6 +182,8 @@ struct RevFlowPrimitive: Codable {
             self.doubleValue = doubleValue
         } else if let boolValue = rawValue as? Bool {
             self.boolValue = boolValue
+        } else if let dateValue = rawValue as? Date {
+            self.dateValue = dateValue
         } else {
             return nil
         }
@@ -196,17 +204,23 @@ struct RevFlowPrimitive: Codable {
     init(boolValue: Bool) {
         self.boolValue = boolValue
     }
+    
+    init(dateValue: Date) {
+        self.dateValue = dateValue
+    }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        if let intValue = intValue {
+        if let intValue {
             try container.encode(intValue)
-        } else if let doubleValue = doubleValue {
+        } else if let doubleValue {
             try container.encode(doubleValue)
-        } else if let stringValue = stringValue {
+        } else if let stringValue {
             try container.encode(stringValue)
-        } else if let boolValue = boolValue {
+        } else if let boolValue {
             try container.encode(boolValue)
+        } else if let dateValue {
+            try container.encode(dateValue)
         } else {
             throw EncodingError.invalidValue(
                 self,
@@ -227,6 +241,8 @@ struct RevFlowPrimitive: Codable {
             self.stringValue = stringValue
         } else if let boolValue = try? container.decode(Bool.self) {
             self.boolValue = boolValue
+        } else if let dateValue = try? container.decode(Date.self) {
+            self.dateValue = dateValue
         } else {
             throw DecodingError.dataCorruptedError(
                 in: container, debugDescription: "Invalid RevFlowPrimitive"

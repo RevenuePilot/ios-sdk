@@ -177,6 +177,7 @@ extension RevenuePilot {
                 let messagesData = try jsonEncoder.encode(params.messages)
                 let messagesJSONArray =
                     try (JSONSerialization.jsonObject(with: messagesData) as? [[String: Any]]) ?? []
+                
                 params.configuration.logger.log(
                     .info,
                     message: "SendBatchingMessageJob: Encoded \(messagesJSONArray.count) messages",

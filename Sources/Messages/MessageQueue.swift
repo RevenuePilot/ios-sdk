@@ -110,7 +110,7 @@ actor MessageQueue {
 
     private func startBatchTimer(window: QueueOptions.BatchingWindow) {
         processingTask?.cancel()
-        processingTask = Task {
+        processingTask = Task(priority: .background) {
             while !Task.isCancelled && state == .processing {
                 do {
                     try await Task.sleep(nanoseconds: UInt64(window.timeWindow * 1_000_000_000))
